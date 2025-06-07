@@ -1,55 +1,60 @@
-<!-- src/views/HomeView.vue -->
+<!-- src/App.vue -->
 <template>
-  <div class="relative min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 overflow-hidden">
-    
-    <header class="text-center mb-10 shrink-0">
-      <h1 class="font-serif text-4xl sm:text-5xl font-bold text-white tracking-wide">Our Collection</h1>
-      <p class="text-white/70 text-lg mt-2">Swipe to explore</p>
-    </header>
+  <div>
+    <!-- 
+      This is the main container for your carousel.
+      The v-if checks if we are on the home page. If we are, it shows the carousel.
+      If we navigate to /pry, this entire div will be hidden.
+    -->
+    <div v-if="$route.name === 'Home'" class="relative min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 overflow-hidden">
+      
+      <header class="text-center mb-10 shrink-0">
+        <h1 class="font-serif text-4xl sm:text-5xl font-bold text-white tracking-wide">Our Collection</h1>
+        <p class="text-white/70 text-lg mt-2">Swipe to explore</p>
+      </header>
 
-    <!-- HORIZONTAL SCROLL CONTAINER -->
-    <div class="w-full flex overflow-x-auto snap-x snap-mandatory py-8 scrollbar-hide">
-      
-      <div class="snap-center shrink-0"><div class="w-4 sm:w-1/12"></div></div>
-      
-      <!-- v-for loop for the cards -->
-      <div 
-        v-for="card in cards" 
-        :key="card.id"
-        class="snap-center shrink-0 px-4 sm:px-6"
-      >
-        <!-- 
-          THE FIX IS HERE: We wrap the card in a router-link or a regular div
-        -->
-        <component :is="card.link ? 'router-link' : 'div'" :to="card.link">
-          <div class="group relative h-80 w-64 rounded-2xl shadow-2xl glowing-border">
-            <div class="relative h-full w-full rounded-2xl overflow-hidden">
-              <img :src="require('@/assets/card.jpeg')" class="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-soft-light" alt="Card background texture"/>
-              <div class="absolute inset-0 z-20 p-5 flex flex-col items-center justify-center text-center">
-                <h1 class="font-serif text-3xl font-bold text-white text-shadow">{{ card.title }}</h1>
-                <h2 class="text-sm font-light text-gray-200 mt-1 text-shadow-sm">{{ card.subtitle }}</h2>
+      <!-- HORIZONTAL SCROLL CONTAINER -->
+      <div class="w-full flex overflow-x-auto snap-x snap-mandatory py-8 scrollbar-hide">
+        <div class="snap-center shrink-0"><div class="w-4 sm:w-1/12"></div></div>
+        <div 
+          v-for="card in cards" 
+          :key="card.id"
+          class="snap-center shrink-0 px-4 sm:px-6"
+        >
+          <component :is="card.link ? 'router-link' : 'div'" :to="card.link">
+            <div class="group relative h-80 w-64 rounded-2xl shadow-2xl glowing-border">
+              <div class="relative h-full w-full rounded-2xl overflow-hidden">
+                <img :src="require('@/assets/card.jpeg')" class="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-soft-light" alt="Card background texture"/>
+                <div class="absolute inset-0 z-20 p-5 flex flex-col items-center justify-center text-center">
+                  <h1 class="font-serif text-3xl font-bold text-white text-shadow">{{ card.title }}</h1>
+                  <h2 class="text-sm font-light text-gray-200 mt-1 text-shadow-sm">{{ card.subtitle }}</h2>
+                </div>
               </div>
             </div>
-          </div>
-        </component>
-
+          </component>
+        </div>
+        <div class="snap-center shrink-0"><div class="w-4 sm:w-1/12"></div></div>
       </div>
-
-      <div class="snap-center shrink-0"><div class="w-4 sm:w-1/12"></div></div>
     </div>
+
+    <!-- 
+      This is the router's placeholder.
+      It will ONLY render something when the route is NOT the home page.
+      When you go to /pry, PryView.vue will be rendered here.
+    -->
+    <router-view v-if="$route.name !== 'Home'"></router-view>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'HomeView', // Changed name to HomeView
+  name: 'App',
   data() {
     return {
       cards: [
-        // THE FIX: Add an `id` and a `link` property
         { id: 1, title: 'PRY', subtitle: '#######', link: '/pry' },
-        { id: 2, title: 'MED', subtitle: '“#######”', link: null }, // No link
-        { id: 3, title: 'TSK', subtitle: '#######', link: null },
+        { id: 2, title: 'MED', subtitle: '“#######”', link: '/med' },
+        { id: 3, title: 'TSK', subtitle: '#######', link: '/tsk' },
         { id: 4, title: '#######', subtitle: '#######', link: null },
         { id: 5, title: '#######', subtitle: '#######', link: null },
         { id: 6, title: '#######', subtitle: '#######', link: null },
@@ -62,10 +67,9 @@ export default {
 </script>
 
 <style>
-/* All your previous styles go here, no changes needed */
-body { font-family: 'Inter', sans-serif; }
+/* All your styles remain exactly the same. No changes needed here. */
+body { font-family: 'Inter', sans-serif; background-color: #111827; }
 .font-serif { font-family: 'Playfair Display', serif; }
-/* ... etc ... */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .text-shadow {

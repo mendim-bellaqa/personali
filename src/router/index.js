@@ -2,27 +2,40 @@
 
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import App from '../App.vue' // We'll point the main path to our App component
-import PryView from '../views/PryView.vue' // The new page we're creating
+// --- We still need to import all the views ---
+import App from '../App.vue' // Your carousel is in App.vue
+import PryView from '../views/PryView.vue'
+import MedView from '../views/MedView.vue'
+import TskView from '../views/TskView.vue'
 
 Vue.use(VueRouter)
 
+// --- THIS IS THE CORRECT, SIMPLE ROUTE LIST ---
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: App // Your main carousel page is the home page
+    component: App // The home path '/' loads App.vue (the carousel).
   },
   {
     path: '/pry',
     name: 'Pry',
-    component: PryView // The page for the PRY card
+    component: PryView
+  },
+  {
+    path: '/med',
+    name: 'Med',
+    component: MedView
+  },
+  {
+    path: '/tsk',
+    name: 'Tsk',
+    component: TskView
   }
-  // You can add more routes here for MED, TSK, etc.
 ]
 
 const router = new VueRouter({
-  mode: 'history', // Makes the URL clean (e.g., /pry instead of /#/pry)
+  mode: 'history',
   base: process.env.BASE_URL,
   routes
 })
