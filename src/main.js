@@ -9,4 +9,4 @@ Vue.config.productionTip = false
 new Vue({
   router, // <-- ADD THE ROUTER TO THE VUE INSTANCE
   render: h => h(App)
-}).$mount('#app')
+}).$mount('#app') 
