@@ -63,7 +63,7 @@ export default {
         { id: 3, title: 'TSK', subtitle: 'Checklist', link: '/tsk' },
         { id: 4, title: 'C14', subtitle: 'Number Selector', link: '/c14' },
         { id: 5, title: 'DWN', subtitle: 'Calendar', link: '/dwn' },
-        { id: 6, title: 'CRSN', subtitle: 'Coming Soon', link: '/cr-sn' },
+        { id: 6, title: 'CRSN', subtitle: 'Coming Soon', link: null },
         { id: 7, title: 'TBD', subtitle: 'Coming Soon', link: null },
       ],
       activeIndex: 0,
