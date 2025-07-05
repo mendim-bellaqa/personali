@@ -59,12 +59,11 @@ export default {
     return {
       cards: [
         { id: 1, title: 'PRY', subtitle: 'Tap Counter', link: '/pry' },
-        { id: 2, title: 'MED', subtitle: 'Focus Timer', link: '/med' },
         { id: 3, title: 'TSK', subtitle: 'Checklist', link: '/tsk' },
+        { id: 2, title: 'MED', subtitle: 'Focus Timer', link: '/med' },
         { id: 4, title: 'C14', subtitle: 'Number Selector', link: '/c14' },
         { id: 5, title: 'DWN', subtitle: 'Calendar', link: '/dwn' },
         { id: 6, title: 'CRSN', subtitle: 'Coming Soon', link: null },
-        { id: 7, title: 'TBD', subtitle: 'Coming Soon', link: null },
       ],
       activeIndex: 0,
       isDragging: false,

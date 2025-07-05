@@ -85,15 +85,28 @@ export default {
   name: 'TskView',
   data() {
     return {
-      tasks: [
+      tasks: [],
+      newTaskText: '',
+      nextTaskId: 1,
+    };
+  },
+  mounted() {
+    const saved = localStorage.getItem('tsk-tasks');
+    if (saved) {
+      this.tasks = JSON.parse(saved);
+      // Set nextTaskId to max existing id + 1
+      const maxId = this.tasks.reduce((max, t) => Math.max(max, t.id), 0);
+      this.nextTaskId = maxId + 1;
+    } else {
+      // If no saved tasks, you can optionally set some defaults
+      this.tasks = [
         { id: 1, text: 'Design the new TskView page', completed: true },
         { id: 2, text: 'Implement task functionality', completed: true },
         { id: 3, text: 'Ensure consistent styling', completed: false },
         { id: 4, text: 'Take a well-deserved break', completed: false },
-      ],
-      newTaskText: '',
-      nextTaskId: 5, // Start IDs after the initial ones
-    };
+      ];
+      this.nextTaskId = 5;
+    }
   },
   methods: {
     addTask() {
@@ -121,7 +134,15 @@ export default {
       // Filter to keep only the tasks that are not completed
       this.tasks = this.tasks.filter(task => !task.completed);
     }
-  }
+  },
+  watch: {
+    tasks: {
+      handler(newTasks) {
+        localStorage.setItem('tsk-tasks', JSON.stringify(newTasks));
+      },
+      deep: true,
+    },
+  },
 };
 </script>
 
