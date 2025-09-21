@@ -20,7 +20,7 @@
       @touchstart="startTouch"
       @touchend="stopTouch"
       @touchmove="onTouch"
-      class="relative z-10 w-full flex overflow-x-auto snap-x snap-mandatory py-8 scrollbar-hide cursor-grab"
+      class="relative z-10 w-full flex overflow-x-auto snap-x snap-mandatory py-8 scrollbar-hide cursor-grab touch-pan-x"
       :class="{ 'is-grabbing': isDragging }"
     >
       <div class="snap-center shrink-0">
@@ -133,7 +133,7 @@ export default {
       this.isTouchDragging = true;
       this.startTouchX = e.touches[0].clientX - container.offsetLeft;
       this.startScrollLeft = container.scrollLeft;
-      e.preventDefault();
+      // Removed e.preventDefault() to allow tap events on children
     },
 
     stopTouch(e) {
@@ -142,13 +142,15 @@ export default {
       
       const moveDistance = Math.abs(e.changedTouches[0].clientX - this.startTouchX);
       if (moveDistance < this.touchThreshold) {
-        this.handleCardClick(e);
+        // It was a tap - let the default behavior (navigation) happen
+      } else {
+        this.snapToNearest();
       }
     },
 
     onTouch(e) {
       if (!this.isTouchDragging) return;
-      e.preventDefault();
+      e.preventDefault(); // Prevent only during actual move
       const container = this.$refs.scrollContainer;
       const x = e.touches[0].clientX - container.offsetLeft;
       const walk = (x - this.startTouchX) * 2;
@@ -158,8 +160,7 @@ export default {
 
     // Mouse drag handlers
     startDrag(e) {
-      if (e.target.closest('a')) return;
-      
+      // Removed if (e.target.closest('a')) to allow drag start on links
       this.stopAutoplay();
       const container = this.$refs.scrollContainer;
       this.isDragging = true;
@@ -169,6 +170,7 @@ export default {
 
     stopDrag() {
       this.isDragging = false;
+      this.snapToNearest();
     },
 
     onDrag(e) {
@@ -178,6 +180,15 @@ export default {
       const x = e.pageX - container.offsetLeft;
       const walk = (x - this.startX) * 2; 
       container.scrollLeft = this.startScrollLeft - walk;
+    },
+
+    // NEW: Snap to nearest after drag
+    snapToNearest() {
+      const container = this.$refs.scrollContainer;
+      const scrollLeft = container.scrollLeft;
+      const cardWidth = this.$refs.cardElements[0]?.offsetWidth + 32 || 296; // Approx width + padding
+      const index = Math.round(scrollLeft / cardWidth);
+      this.scrollToCard(index, 'smooth');
     },
 
     // Enhanced intersection observer
@@ -229,7 +240,7 @@ export default {
       }
     },
 
-    // Enhanced click handling
+    // Enhanced click handling - Only prevent if actual drag occurred
     handleCardClick(e) {
       if (this.isDragging || this.isTouchDragging) {
         e.preventDefault();
@@ -237,10 +248,7 @@ export default {
         return false;
       }
       
-      setTimeout(() => {
-        this.isDragging = false;
-        this.isTouchDragging = false;
-      }, 100);
+      // No need for setTimeout, flags reset in stop handlers
     },
 
     // Mouse hover handlers
@@ -255,7 +263,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 body { 
   font-family: 'Inter', sans-serif; 
   background-color: #000; 
@@ -397,6 +405,10 @@ body {
   touch-action: manipulation;
   min-width: 44px;
   min-height: 44px;
+}
+
+.touch-pan-x {
+  touch-action: pan-x;
 }
 
 /* Smooth button transitions */
