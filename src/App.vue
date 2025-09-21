@@ -13,5 +13,4 @@ export default {
 </script>
 
 <style>
-/* Your global styles, like body background, can stay here */
 </style>
