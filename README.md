@@ -1,4 +1,8 @@
-# personali
+# pass
+
+This project was renamed from `personali` to `pass`.
+
+Development notes and instructions for connecting a free Supabase database and deploying on Netlify are provided in the `docs/` folder (see docs/setup.md).
 
 ## Project setup
 ```

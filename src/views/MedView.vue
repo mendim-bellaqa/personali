@@ -14,7 +14,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.871 4.23c2.395-1.79 5.45-2.227 8.29-1.197 2.253.818 4.053 2.618 4.87 4.871 1.03 2.84-.407 5.9-2.197 8.295a14.532 14.532 0 01-2.27 2.466c-1.07.96-2.438 1.54-3.87 1.54s-2.8-.58-3.87-1.54A14.535 14.535 0 014.13 16.2c-1.79-2.395-3.227-5.455-2.197-8.295.817-2.252 2.617-4.052 4.87-4.87z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 14.25c-1.353 0-2.684-.284-3.92-.83a15.048 15.048 0 01-3.921-2.583M12 14.25v2.584c0 1.354.283 2.684.83 3.92a15.048 15.048 0 002.583 3.921" />
           </svg>
-          <h1 class="text-4xl font-bold text-white">Med Page</h1>
+          <h1 class="text-4xl font-bold text-white">MP</h1>
         </div>
 
         <!-- Timer Display -->
@@ -39,7 +39,7 @@
         </div>
 
         <!-- Quote -->
-        <p class="mb-8 text-center italic text-gray-300">“Focus for 12 minutes. You'll thank yourself later.”</p>
+        <p class="mb-8 text-center italic text-gray-300">HLO</p>
 
         <!-- FIXED Navigation Link -->
         <router-link to="/" class="text-sm text-blue-400 transition hover:text-blue-300">
