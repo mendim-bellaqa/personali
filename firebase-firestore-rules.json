@@ -1,18 +1,18 @@
-{
-  "rules": {
-    "tasks": {
-      ".read": "auth != null",
-      "$taskId": {
-        ".read": "auth != null && auth.uid == resource.data.userId",
-        ".write": "auth != null && auth.uid == request.resource.data.userId",
-        ".create": "auth != null && auth.uid == request.resource.data.userId",
-        ".update": "auth != null && auth.uid == resource.data.userId",
-        ".delete": "auth != null && auth.uid == resource.data.userId"
-      }
-    },
-    "users": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /tasks/{taskId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    match /archive/{archiveId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

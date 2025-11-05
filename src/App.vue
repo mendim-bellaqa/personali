@@ -16,6 +16,8 @@
 <script>
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './services/firebase';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from './services/firebase';
 
 export default {
   name: 'AppRoot',
@@ -53,6 +55,36 @@ export default {
       } catch (e) {
         console.warn('Sign out failed:', e);
       }
+    },
+    async addTask() {
+      try {
+        if (!this.form.title.trim()) {
+          throw new Error('Task title cannot be empty');
+        }
+
+        const newTask = {
+          title: this.form.title,
+          description: this.form.description,
+          plan: this.form.plan,
+          deadline: this.form.deadline,
+          completed: false,
+          userId: auth.currentUser.uid // Ensure userId is included
+        };
+
+        const docRef = await addDoc(collection(db, 'tasks'), newTask);
+        console.log('Task added with ID:', docRef.id);
+
+        this.tasks.push({ id: docRef.id, ...newTask });
+
+        // Clear form
+        this.form.title = '';
+        this.form.description = '';
+        this.form.plan = 'A';
+        this.form.deadline = '';
+      } catch (error) {
+        console.error('Error adding task:', error);
+        alert('Failed to add task. Please try again.');
+      }
     }
   }
 }
@@ -81,3 +113,16 @@ export default {
   padding-top: 16px; /* Reduce top padding */
 }
 </style>
+
+{
+  "rules": {
+    "tasks": {
+      ".read": "auth != null",
+      ".write": "auth != null && request.auth.uid != null",
+      "$taskId": {
+        ".read": "auth != null && auth.uid == resource.data.userId",
+        ".write": "auth != null && auth.uid == request.resource.data.userId"
+      }
+    }
+  }
+}

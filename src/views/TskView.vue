@@ -15,8 +15,8 @@
       </div>
     </div>
 
-    <!-- Main Content Container -->
-    <main class="relative z-10 w-full max-w-4xl mx-auto">
+  <!-- Main Content Container -->
+  <main class="relative z-10 w-full max-w-4xl mx-auto main-center">
       <!-- Task Form Container -->
       <div class="task-form-container liquid-glass-card">
         <!-- Form Header -->
@@ -205,6 +205,13 @@
         </form>
       </div>
     </div>
+
+    <!-- Footer Section -->
+    <footer class="footer footer-fixed" role="contentinfo">
+      <button @click="sendMarkedToArchive" class="footer-btn">Sent market to archived</button>
+      <button @click="viewArchivedTasks" class="footer-btn">View archived tasks</button>
+      <button @click="backToCollection" class="footer-btn">Back to collection</button>
+    </footer>
   </div>
 </template>
 
@@ -218,7 +225,6 @@ import {
   onSnapshot,
   query,
   where,
-  orderBy,
   serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
@@ -250,18 +256,19 @@ export default {
     loadTasks() {
       if (!auth.currentUser) return;
 
+      // Simplified query without composite index requirements
       const tasksQuery = query(
         collection(db, 'tasks'),
-        where('userId', '==', auth.currentUser.uid),
-        where('archived', '==', false),
-        orderBy('order', 'asc')
+        where('userId', '==', auth.currentUser.uid)
       );
 
       onSnapshot(tasksQuery, (snapshot) => {
         this.tasks = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        }));
+        }))
+        .filter(task => !task.archived)
+        .sort((a, b) => (a.order || 0) - (b.order || 0));
       });
     },
 
@@ -271,19 +278,27 @@ export default {
           throw new Error('Task title cannot be empty');
         }
 
+        // Get the next order value for this user
+        const nextOrder = this.tasks.length > 0 ? Math.max(...this.tasks.map(t => t.order || 0)) + 1 : 0;
+
         const newTask = {
           title: this.form.title,
           description: this.form.description,
           plan: this.form.plan,
-          deadline: this.form.deadline,
+          deadline: this.form.deadline || null,
           completed: false,
-          userId: auth.currentUser.uid
+          archived: false,
+          order: nextOrder,
+          userId: auth.currentUser.uid,
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
 
         const docRef = await addDoc(collection(db, 'tasks'), newTask);
         console.log('Task added with ID:', docRef.id);
 
-        this.tasks.push({ id: docRef.id, ...newTask });
+        // Add task with transition effect
+        this.tasks = [...this.tasks, { id: docRef.id, ...newTask }];
 
         // Clear form
         this.form.title = '';
@@ -367,15 +382,13 @@ export default {
     },
 
     onDrop(e, dropIndex) {
-      if (this.dragIndex === null || this.dragIndex === dropIndex) return;
-      
+      if (this.dragIndex === null || this.dragIndex === dropIndex) {
+        return;
+      }
+
       const draggedTask = this.tasks[this.dragIndex];
       this.tasks.splice(this.dragIndex, 1);
       this.tasks.splice(dropIndex, 0, draggedTask);
-      
-      this.updateTaskOrders();
-      this.isDragging = false;
-      this.dragIndex = null;
     },
 
     onDragEnd() {
@@ -395,6 +408,42 @@ export default {
       } catch (error) {
         console.error('Error updating task orders:', error);
       }
+    },
+
+    sendMarkedToArchive() {
+      // Archive all tasks that are marked (we'll treat `completed === true` as marked)
+      if (!auth.currentUser) return;
+
+      const marked = this.tasks.filter(t => t.completed && !t.archived);
+      if (marked.length === 0) {
+        alert('No marked tasks to archive. Mark tasks (check them) first.');
+        return;
+      }
+
+      if (!confirm(`Send ${marked.length} marked task(s) to archive?`)) return;
+
+      const promises = marked.map(t => updateDoc(doc(db, 'tasks', t.id), {
+        archived: true,
+        updatedAt: serverTimestamp()
+      }));
+
+      Promise.all(promises)
+        .then(() => {
+          // UI will update via onSnapshot; show a small notice
+          console.log('Marked tasks archived');
+        })
+        .catch(err => {
+          console.error('Failed to archive marked tasks', err);
+          alert('Failed to archive marked tasks. See console for details.');
+        });
+    },
+
+    viewArchivedTasks() {
+      this.$router.push('/archive');
+    },
+
+    backToCollection() {
+      this.$router.push('/');
     }
   }
 };
@@ -651,6 +700,21 @@ export default {
   padding: 24px;
 }
 
+/* Keep form & list centered and constrained */
+.main-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.task-form-container,
+.task-list-container {
+  width: 100%;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .form-header {
   margin-bottom: 20px;
 }
@@ -698,15 +762,15 @@ export default {
 
 /* Task List */
 .task-list-container {
-  margin-top: 32px;
+  margin-top: 40px;
 }
 
 .task-list-header {
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  padding: 0 8px;
+  padding: 0 10px;
 }
 
 .task-count {
@@ -734,6 +798,7 @@ export default {
 .task-item {
   padding: 16px;
   transition: all 0.3s ease;
+  margin-bottom: 5px;
 }
 
 .task-item.completed {
@@ -939,6 +1004,44 @@ export default {
   transform: translateX(-100%);
 }
 
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  padding: 8px 12px;
+  align-items: center;
+}
+
+/* Fixed centered footer so user always sees the actions */
+.footer-fixed {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 18px;
+  z-index: 60;
+  background: transparent; /* keep app styling */
+}
+
+.footer-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.footer-btn + .footer-btn {
+  margin-left: 8px;
+}
+
+.footer-btn:hover {
+  background: rgba(255,255,255,0.03);
+  color: #fff;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .task-form-container {
@@ -947,43 +1050,16 @@ export default {
   
   .form-row {
     flex-direction: column;
-    gap: 12px;
-  }
-  
-  .form-row:last-child {
-    flex-direction: column;
-  }
-  
-  .task-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .task-meta {
-    align-self: stretch;
-    justify-content: flex-start;
-  }
-  
-  .task-content {
     gap: 10px;
   }
-  
-  .task-actions {
-    align-self: flex-start;
+
+  .form-input,
+  .form-select {
+    width: 100%;
   }
-  
-  .modal-content {
-    padding: 20px;
-    margin: 16px;
-  }
-  
-  .profile-button {
-    padding: 6px 12px;
-  }
-  
-  .profile-name {
-    display: none;
+
+  .task-list-container {
+    padding: 0 10px;
   }
 }
 
