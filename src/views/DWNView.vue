@@ -38,7 +38,7 @@
       
       <!-- Footer Controls -->
       <div class="w-full flex justify-between items-center mt-6 pt-6 border-t border-white/10">
-        <button @click="resetSelection" class="px-4 py-2 rounded-lg border border-red-900/50 border-t-red-400/50 bg-gradient-to-b from-red-600 to-red-700 font-semibold text-white shadow-md transform transition hover:from-red-700 hover:to-red-800 active:scale-95 focus:outline-none text-sm">
+        <button @click="resetSelection" class="px-4 py-2 rounded-lg font-semibold text-white shadow-md transform transition active:scale-95 focus:outline-none text-sm liquid-glass-button">
           Reset Selections
         </button>
         <router-link to="/" class="text-sm text-blue-400 transition hover:text-blue-300">
@@ -100,10 +100,10 @@ export default {
     getDayClasses(day) {
       if (this.selectedDays.has(day)) {
         // Selected state: Green liquid glass
-        return 'bg-gradient-to-b from-green-500 to-green-600 text-white shadow-green-500/20 border border-green-700/50 shadow-inner shadow-black/30';
+        return 'liquid-glass-button text-white';
       } else {
         // Unselected state: Dark 3D button
-        return 'bg-gradient-to-b from-zinc-700 to-zinc-800 text-gray-300 border border-zinc-900/50 border-t-zinc-600/50 shadow-inner';
+        return 'liquid-glass text-gray-300';
       }
     },
     // Reset selections and save

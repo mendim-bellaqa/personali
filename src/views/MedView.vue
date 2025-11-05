@@ -24,15 +24,15 @@
 
         <!-- Control Buttons -->
         <div class="mb-10 flex space-x-4">
-          <button @click="startTimer" class="flex w-28 items-center justify-center gap-x-2 rounded-lg border border-green-900/50 border-t-green-400/50 bg-gradient-to-b from-green-500 to-green-600 py-2 font-semibold text-white transition hover:from-green-600 hover:to-green-700">
+          <button @click="startTimer" class="flex w-28 items-center justify-center gap-x-2 rounded-lg py-2 font-semibold text-white transition liquid-glass-button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
             Start
           </button>
-          <button @click="stopTimer" class="flex w-28 items-center justify-center gap-x-2 rounded-lg border border-yellow-800/50 border-t-yellow-300/50 bg-gradient-to-b from-yellow-400 to-yellow-500 py-2 font-semibold text-white transition hover:from-yellow-500 hover:to-yellow-600">
+          <button @click="stopTimer" class="flex w-28 items-center justify-center gap-x-2 rounded-lg py-2 font-semibold text-white transition liquid-glass-button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z" /></svg>
             Stop
           </button>
-          <button @click="resetTimer" class="flex w-28 items-center justify-center gap-x-2 rounded-lg border border-red-900/50 border-t-red-400/50 bg-gradient-to-b from-red-500 to-red-600 py-2 font-semibold text-white transition hover:from-red-600 hover:to-red-700">
+          <button @click="resetTimer" class="flex w-28 items-center justify-center gap-x-2 rounded-lg py-2 font-semibold text-white transition liquid-glass-button">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201-4.42 5.5 5.5 0 017.153-7.923A5.5 5.5 0 0117.5 8.5h-3.5a2 2 0 00-2 2v2.5a.5.5 0 01-1 0V13a.5.5 0 01.5-.5h5.5a.5.5 0 01.447.724l-1.135 2.27a.5.5 0 01-.894-.448l.22-.44a4.503 4.503 0 00-2.35-2.652zM2.5 11.5a5.5 5.5 0 019.201 4.42 5.5 5.5 0 01-7.153 7.923A5.5 5.5 0 012.5 11.5h3.5a2 2 0 002-2V7a.5.5 0 011 0v2.5a.5.5 0 01-.5.5H3a.5.5 0 01-.447-.724l1.135-2.27a.5.5 0 01.894.448l-.22.441a4.503 4.503 0 002.35 2.652z" clip-rule="evenodd" /></svg>
             Reset
           </button>

@@ -1,245 +1,206 @@
 <template>
-  <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white select-none">
-    <!-- Animated Grid Background -->
-    <div class="fixed inset-0 z-0 opacity-20">
-      <div class="bg-grid-pattern animate-gridMove"></div>
+  <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white select-none relative">
+    <!-- Universal Banner -->
+    <UniversalBanner />
+    
+    <!-- Animated Background with Particles -->
+    <div class="fixed inset-0 z-0">
+      <div class="animated-bg">
+        <div class="particles">
+          <div v-for="i in 20" :key="i" class="particle" :style="{ '--delay': i * 0.5 + 's' }"></div>
+        </div>
+        <div class="bg-gradient-orb orb-1"></div>
+        <div class="bg-gradient-orb orb-2"></div>
+        <div class="bg-gradient-orb orb-3"></div>
+      </div>
     </div>
 
-    <!-- Main Liquid Glass Container -->
-    <div class="relative z-10 flex flex-col w-full max-w-2xl max-w-[95vw] h-[90vh] max-h-[900px] rounded-3xl border border-white/20 border-t-white/30 bg-gradient-to-b from-white/20 to-white/10 shadow-2xl backdrop-blur-2xl overflow-hidden">
-      
-      <!-- Header with Add Task Form -->
-      <header class="text-center p-4 sm:p-6 border-b border-white/10 bg-gradient-to-b from-white/10 to-transparent">
-        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">TSK</h1>
-        <p class="mt-1 text-gray-300 text-sm">Your daily productivity hub</p>
-        
-        <!-- Integrated Add Task Form -->
-        <form @submit.prevent="addTask" class="mt-4 space-y-3 tsk-form">
-          <!-- Task Title and Plan Row -->
-          <div class="flex gap-2 flex-col sm:flex-row">
+    <!-- Main Content Container -->
+    <main class="relative z-10 w-full max-w-4xl mx-auto">
+      <!-- Task Form Container -->
+      <div class="task-form-container liquid-glass-card">
+        <!-- Form Header -->
+        <div class="form-header">
+          <h2 class="text-2xl font-bold text-white mb-2">Add New Task</h2>
+          <p class="text-gray-300 text-sm">Organize your day efficiently</p>
+        </div>
+
+        <!-- Task Form -->
+        <form @submit.prevent="addTask" class="task-form">
+          <!-- Task Title Row -->
+          <div class="form-row">
+            <div class="input-group">
+              <input
+                type="text"
+                v-model="form.title"
+                placeholder="What's on your mind?"
+                class="form-input liquid-glass-input"
+              />
+            </div>
+            <div class="select-group">
+              <select v-model="form.plan" class="form-select liquid-glass-input">
+                <option value="A">Plan A</option>
+                <option value="B">Plan B</option>
+                <option value="C">Plan C</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-row">
+            <textarea
+              v-model="form.description"
+              placeholder="Additional details..."
+              rows="2"
+              class="form-input liquid-glass-input resize-none"
+            ></textarea>
+          </div>
+
+          <!-- Deadline and Action Row -->
+          <div class="form-row">
             <input
-              type="text"
-              v-model="form.title"
-              placeholder="What needs to be done?"
-              class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all"
+              type="date"
+              v-model="form.deadline"
+              class="form-input liquid-glass-input"
             />
+            <button
+              type="submit"
+              :disabled="!form.title.trim()"
+              class="add-button liquid-glass-button"
+              :class="{ 'disabled': !form.title.trim() }"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <span>Add Task</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Task List -->
+      <div class="task-list-container">
+        <div class="task-list-header">
+          <h3 class="text-xl font-semibold text-white">
+            <span class="tasks-text-bold">Tasks</span>
+          </h3>
+          <div class="task-count">{{ tasks.length }} tasks</div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="task-list">
+          <transition-group name="task" tag="div">
+            <div
+              v-for="(task, index) in tasks"
+              :key="task.id"
+              :draggable="true"
+              @dragstart="onDragStart($event, index)"
+              @dragover.prevent
+              @drop="onDrop($event, index)"
+              @dragend="onDragEnd"
+              class="task-item liquid-glass-card"
+              :class="{ 'completed': task.completed, 'dragging': isDragging }"
+            >
+              <!-- Task Content -->
+              <div class="task-content">
+                <!-- Checkbox -->
+                <button @click="toggleTask(task)" class="task-checkbox">
+                  <svg v-if="task.completed" class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                </button>
+
+                <!-- Task Details -->
+                <div class="task-details">
+                  <div class="task-header">
+                    <h4 :class="['task-title', { 'completed': task.completed }]">
+                      {{ task.title }}
+                    </h4>
+                    <div class="task-meta">
+                      <span :class="['task-plan', `plan-${task.plan}`]">
+                        {{ task.plan }}
+                      </span>
+                      <span class="task-deadline">{{ formatDate(task.deadline) }}</span>
+                    </div>
+                  </div>
+                  <p v-if="task.description" :class="['task-description', { 'completed': task.completed }]">
+                    {{ task.description }}
+                  </p>
+                </div>
+
+                <!-- Task Actions -->
+                <div class="task-actions">
+                  <button @click="editTask(task)" class="task-action-btn">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                    </svg>
+                  </button>
+                  <button @click="deleteTask(task.id)" class="task-action-btn text-red-400">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L8.586 12l-1.293 1.293a1 1 0 101.414 1.414L9 13.414l1.293 1.293a1 1 0 001.414-1.414L10.414 12l1.293-1.293z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </transition-group>
+
+          <!-- Empty State -->
+          <div v-if="tasks.length === 0" class="empty-state">
+            <div class="empty-icon">
+              <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-300 mb-2">No tasks yet</h3>
+            <p class="text-gray-400">Create your first task to get started!</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Edit Task Modal -->
+    <div v-if="editingTask" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="modal-content liquid-glass-card max-w-md w-full">
+        <div class="modal-header">
+          <h3 class="text-xl font-bold text-white">Edit Task</h3>
+        </div>
+        <form @submit.prevent="saveTaskEdit" class="modal-form">
+          <div class="form-group">
+            <input
+              v-model="editingTask.title"
+              type="text"
+              placeholder="Task title"
+              class="form-input liquid-glass-input"
+            />
+          </div>
+          <div class="form-group">
+            <textarea
+              v-model="editingTask.description"
+              placeholder="Description"
+              rows="3"
+              class="form-input liquid-glass-input resize-none"
+            ></textarea>
+          </div>
+          <div class="form-row">
             <select
-              v-model="form.plan"
-              class="bg-white/10 border border-white/20 rounded-xl px-3 py-3 text-white backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all sm:w-24"
+              v-model="editingTask.plan"
+              class="form-select liquid-glass-input flex-1"
             >
               <option value="A">Plan A</option>
               <option value="B">Plan B</option>
               <option value="C">Plan C</option>
             </select>
-          </div>
-
-          <!-- Description -->
-          <textarea
-            v-model="form.description"
-            placeholder="Add more details... (optional)"
-            rows="2"
-            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all resize-none"
-          ></textarea>
-
-          <!-- Deadline and Add Button Row -->
-          <div class="flex gap-3 items-center flex-col sm:flex-row">
             <input
+              v-model="editingTask.deadline"
               type="date"
-              v-model="form.deadline"
-              class="bg-white/10 border border-white/20 rounded-xl px-3 py-3 text-white backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all w-full sm:w-auto"
+              class="form-input liquid-glass-input flex-1"
             />
-            <button
-              type="submit"
-              :disabled="!form.title.trim()"
-              class="px-6 py-3 liquid-glass disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 transform transition-all duration-200 font-medium w-full sm:w-auto"
-            >
-              <span v-if="!form.title.trim()">Add Task</span>
-              <span v-else>+ Add Task</span>
-            </button>
           </div>
-        </form>
-      </header>
-
-      <!-- Task List with Drag & Drop -->
-      <div class="flex-grow overflow-hidden">
-        <div class="h-full overflow-y-auto p-4 sm:p-6">
-          <div class="space-y-3">
-            <transition-group name="task" tag="div">
-              <div
-                v-for="(task, index) in tasks"
-                :key="task.id"
-                :draggable="true"
-                @dragstart="onDragStart($event, index)"
-                @dragover.prevent
-                @drop="onDrop($event, index)"
-                @dragend="onDragEnd"
-                class="task-item liquid-glass-card p-3 sm:p-5 rounded-2xl border border-white/20 hover:border-white/30 transition-all duration-300 cursor-move group"
-                :class="{ 'opacity-50': isDragging }"
-              >
-                <div class="flex items-start gap-3">
-                  <!-- Drag Handle -->
-                  <div class="drag-handle flex-shrink-0 mt-1 text-gray-400 group-hover:text-white transition-colors">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                    </svg>
-                  </div>
-
-                  <!-- Checkbox -->
-                  <input
-                    type="checkbox"
-                    v-model="task.completed"
-                    @change="updateTask(task)"
-                    class="h-4 w-4 mt-1 rounded border-white/30 bg-white/10 checked:bg-green-500 checked:border-green-500 focus:ring-green-400/50 flex-shrink-0"
-                  />
-
-                  <!-- Task Content -->
-                  <div class="flex-grow min-w-0">
-                    <div class="flex items-start justify-between gap-2 mb-2">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <h3 :class="['font-semibold text-sm sm:text-lg', task.completed ? 'line-through text-gray-400' : 'text-white']">
-                          {{ task.title }}
-                        </h3>
-                        <span
-                          :class="[
-                            'px-2 py-1 text-xs rounded-full flex-shrink-0',
-                            task.plan === 'A' ? 'bg-green-500/20 text-green-300' :
-                            task.plan === 'B' ? 'bg-yellow-500/20 text-yellow-300' :
-                            'bg-red-500/20 text-red-300'
-                          ]"
-                        >
-                          {{ task.plan }}
-                        </span>
-                      </div>
-                      <span class="text-xs sm:text-sm text-gray-400 flex-shrink-0">{{ formatDate(task.deadline) }}</span>
-                    </div>
-                    
-                    <p v-if="task.description" :class="['text-xs sm:text-sm mb-3 leading-relaxed', task.completed ? 'line-through text-gray-500' : 'text-gray-300']">
-                      {{ task.description }}
-                    </p>
-
-                    <!-- Image Preview -->
-                    <div v-if="task.imageUrl" class="mt-3">
-                      <img
-                        :src="task.imageUrl"
-                        class="max-h-20 sm:max-h-32 rounded-lg border border-white/20"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Action Buttons -->
-                  <div class="flex gap-2 flex-shrink-0">
-                    <!-- Edit Button -->
-                    <button
-                      @click="startEditTask(task)"
-                      class="p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                    >
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-                      </svg>
-                    </button>
-                    
-                    <!-- Delete Button -->
-                    <button
-                      @click="deleteTask(task.id)"
-                      class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                    >
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L8.586 12l-1.293 1.293a1 1 0 101.414 1.414L9 13.414l1.293 1.293a1 1 0 001.414-1.414L10.414 12l1.293-1.293z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </transition-group>
-
-            <!-- Empty State -->
-            <div v-if="tasks.length === 0" class="text-center py-12 sm:py-16">
-              <div class="text-gray-400 mb-4">
-                <svg class="w-16 h-16 sm:w-20 sm:h-20 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <h3 class="text-lg sm:text-xl font-semibold text-gray-300 mb-2">No tasks yet</h3>
-              <p class="text-gray-400 text-sm">Start being productive! Add your first task above.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer Controls -->
-      <footer class="p-4 border-t border-white/10 bg-gradient-to-t from-white/5 to-transparent">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
-          <div class="flex gap-2 sm:gap-3 flex-wrap">
-            <button
-              @click="archiveCompletedTasks"
-              class="px-3 py-2 liquid-glass text-xs sm:text-sm"
-              :disabled="!hasCompletedTasks"
-            >
-              📦 Archive ({{ completedTasksCount }})
-            </button>
-            <router-link
-              to="/archive"
-              class="px-3 py-2 liquid-glass text-xs sm:text-sm"
-            >
-              📂 View Archive
-            </router-link>
-          </div>
-          <router-link to="/" class="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors">
-            ← Back to Collection
-          </router-link>
-        </div>
-      </footer>
-    </div>
-
-    <!-- Edit Task Modal -->
-    <div v-if="editingTask" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div class="bg-black/90 border border-white/20 rounded-2xl p-6 w-full max-w-md">
-        <h3 class="text-xl font-bold mb-4 text-white">Edit Task</h3>
-        <form @submit.prevent="saveTaskEdit">
-          <div class="space-y-4">
-            <input
-              v-model="editingTask.title"
-              type="text"
-              placeholder="Task title"
-              class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50"
-            />
-            <textarea
-              v-model="editingTask.description"
-              placeholder="Description (optional)"
-              rows="3"
-              class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 resize-none"
-            ></textarea>
-            <div class="flex gap-3 items-center">
-              <select
-                v-model="editingTask.plan"
-                class="bg-white/10 border border-white/20 rounded-xl px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 flex-1"
-              >
-                <option value="A">Plan A</option>
-                <option value="B">Plan B</option>
-                <option value="C">Plan C</option>
-              </select>
-              <input
-                v-model="editingTask.deadline"
-                type="date"
-                class="bg-white/10 border border-white/20 rounded-xl px-3 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50 flex-1"
-              />
-            </div>
-          </div>
-          <div class="flex gap-3 mt-6">
-            <button
-              type="button"
-              @click="cancelEdit"
-              class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-xl transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="flex-1 px-4 py-2 liquid-glass-primary rounded-xl font-medium"
-            >
-              Save Changes
-            </button>
+          <div class="modal-actions">
+            <button type="button" @click="cancelEdit" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary liquid-glass-button">Save</button>
           </div>
         </form>
       </div>
@@ -261,100 +222,51 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
+import UniversalBanner from '../components/UniversalBanner.vue';
 
 export default {
   name: 'TskView',
+  components: {
+    UniversalBanner
+  },
   data() {
     return {
       tasks: [],
       isDragging: false,
       dragIndex: null,
-      loading: false,
       editingTask: null,
       form: {
         title: '',
         plan: 'A',
         description: '',
-        deadline: '',
-        imageFile: null,
-        imageUrl: null
+        deadline: ''
       }
     };
-  },
-  computed: {
-    hasCompletedTasks() {
-      return this.tasks.some(task => task.completed);
-    },
-    completedTasksCount() {
-      return this.tasks.filter(task => task.completed).length;
-    }
   },
   mounted() {
     this.loadTasks();
   },
   methods: {
-    async loadTasks() {
-      if (!auth.currentUser) {
-        console.log('User not authenticated');
-        return;
-      }
+    loadTasks() {
+      if (!auth.currentUser) return;
 
-      this.loading = true;
-      try {
-        const tasksQuery = query(
-          collection(db, 'tasks'),
-          where('userId', '==', auth.currentUser.uid),
-          where('archived', '==', false),
-          orderBy('order', 'asc')
-        );
+      const tasksQuery = query(
+        collection(db, 'tasks'),
+        where('userId', '==', auth.currentUser.uid),
+        where('archived', '==', false),
+        orderBy('order', 'asc')
+      );
 
-        onSnapshot(tasksQuery, (snapshot) => {
-          this.tasks = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          this.loading = false;
-        });
-      } catch (error) {
-        console.error('Error loading tasks:', error);
-        this.loading = false;
-      }
-    },
-
-    onFileChange(e) {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      
-      this.form.imageFile = file;
-      this.form.imageUrl = URL.createObjectURL(file);
+      onSnapshot(tasksQuery, (snapshot) => {
+        this.tasks = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      });
     },
 
     async addTask() {
-      // Check authentication
-      if (!this.form.title.trim()) {
-        alert('Please enter a task title.');
-        return;
-      }
-
-      if (!auth.currentUser) {
-        alert('Please sign in to create tasks.');
-        return;
-      }
-
-      console.log('Creating task for user:', auth.currentUser.uid);
-      console.log('Task data:', {
-        title: this.form.title.trim(),
-        plan: this.form.plan,
-        description: this.form.description,
-        deadline: this.form.deadline || null,
-        completed: false,
-        imageUrl: this.form.imageUrl || null,
-        archived: false,
-        userId: auth.currentUser.uid,
-        order: this.tasks.length,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
+      if (!this.form.title.trim() || !auth.currentUser) return;
 
       try {
         const newTask = {
@@ -363,7 +275,6 @@ export default {
           description: this.form.description,
           deadline: this.form.deadline || null,
           completed: false,
-          imageUrl: this.form.imageUrl || null,
           archived: false,
           userId: auth.currentUser.uid,
           order: this.tasks.length,
@@ -371,98 +282,66 @@ export default {
           updatedAt: serverTimestamp()
         };
 
-        const docRef = await addDoc(collection(db, 'tasks'), newTask);
-        console.log('Task created successfully with ID:', docRef.id);
+        await addDoc(collection(db, 'tasks'), newTask);
 
         // Reset form
         this.form = {
           title: '',
           plan: 'A',
           description: '',
-          deadline: '',
-          imageFile: null,
-          imageUrl: null
+          deadline: ''
         };
-
-        // Show success message
-        alert('Task created successfully!');
       } catch (error) {
         console.error('Error adding task:', error);
-        
-        // More specific error messages
-        let errorMessage = 'Failed to add task. ';
-        if (error.code === 'permission-denied') {
-          errorMessage += 'Permission denied. Please check your Firestore security rules.';
-        } else if (error.code === 'unauthenticated') {
-          errorMessage += 'You need to be signed in to create tasks.';
-        } else if (error.code === 'unavailable') {
-          errorMessage += 'Service temporarily unavailable. Please try again later.';
-        } else {
-          errorMessage += 'Please try again. (' + error.message + ')';
-        }
-        
-        alert(errorMessage);
+        alert('Failed to add task. Please try again.');
       }
     },
 
-    async updateTask(task) {
-      if (!auth.currentUser) return;
+    async toggleTask(task) {
+      try {
+        await updateDoc(doc(db, 'tasks', task.id), {
+          completed: !task.completed,
+          updatedAt: serverTimestamp(),
+          ...(task.completed ? {} : { completedAt: serverTimestamp() })
+        });
+      } catch (error) {
+        console.error('Error updating task:', error);
+      }
+    },
+
+    async deleteTask(taskId) {
+      try {
+        await deleteDoc(doc(db, 'tasks', taskId));
+      } catch (error) {
+        console.error('Error deleting task:', error);
+      }
+    },
+
+    editTask(task) {
+      this.editingTask = { ...task };
+    },
+
+    async saveTaskEdit() {
+      if (!this.editingTask) return;
 
       try {
-        const updateData = {
-          completed: task.completed,
+        await updateDoc(doc(db, 'tasks', this.editingTask.id), {
+          title: this.editingTask.title.trim(),
+          description: this.editingTask.description,
+          plan: this.editingTask.plan,
+          deadline: this.editingTask.deadline || null,
           updatedAt: serverTimestamp()
-        };
+        });
 
-        // Add completedAt timestamp when task is marked as completed
-        if (task.completed) {
-          updateData.completedAt = serverTimestamp();
-        }
-
-        await updateDoc(doc(db, 'tasks', task.id), updateData);
+        this.editingTask = null;
       } catch (error) {
         console.error('Error updating task:', error);
         alert('Failed to update task. Please try again.');
       }
     },
 
-    async deleteTask(taskId) {
-      if (!auth.currentUser) return;
-
-      try {
-        await deleteDoc(doc(db, 'tasks', taskId));
-      } catch (error) {
-        console.error('Error deleting task:', error);
-        alert('Failed to delete task. Please try again.');
-      }
-    },
-
-    async archiveCompletedTasks() {
-      if (!auth.currentUser) return;
-
-      try {
-        const completedTasks = this.tasks.filter(task => task.completed);
-        
-        if (completedTasks.length === 0) {
-          alert('No completed tasks to archive.');
-          return;
-        }
-
-        const batch = [];
-        for (const task of completedTasks) {
-          batch.push(updateDoc(doc(db, 'tasks', task.id), {
-            archived: true,
-            updatedAt: serverTimestamp()
-          }));
-        }
-
-        await Promise.all(batch);
-        
-        alert(`${completedTasks.length} tasks archived successfully!`);
-      } catch (error) {
-        console.error('Error archiving tasks:', error);
-        alert('Failed to archive tasks. Please try again.');
-      }
+    cancelEdit() {
+      this.editingTask = null;
     },
 
     formatDate(deadline) {
@@ -481,205 +360,571 @@ export default {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       }
     },
-    
+
     // Drag & Drop Methods
-    async onDragStart(e, index) {
+    onDragStart(e, index) {
       this.dragIndex = index;
       this.isDragging = true;
-      e.dataTransfer.effectAllowed = 'move';
     },
-    
-    async onDrop(e, dropIndex) {
-      e.preventDefault();
-      
-      if (this.dragIndex === null || this.dragIndex === dropIndex) {
-        return;
-      }
+
+    onDrop(e, dropIndex) {
+      if (this.dragIndex === null || this.dragIndex === dropIndex) return;
       
       const draggedTask = this.tasks[this.dragIndex];
-      
-      // Remove the dragged task
       this.tasks.splice(this.dragIndex, 1);
-      
-      // Insert at the new position
       this.tasks.splice(dropIndex, 0, draggedTask);
       
-      // Update orders in database
-      await this.updateTaskOrders();
+      this.updateTaskOrders();
       this.isDragging = false;
       this.dragIndex = null;
     },
-    
+
     onDragEnd() {
       this.isDragging = false;
       this.dragIndex = null;
     },
-    
-    async updateTaskOrders() {
-      if (!auth.currentUser) return;
 
+    async updateTaskOrders() {
       try {
-        // Update the order property for all tasks in database
-        const updatePromises = this.tasks.map((task, index) => {
-          return updateDoc(doc(db, 'tasks', task.id), {
+        const updatePromises = this.tasks.map((task, index) =>
+          updateDoc(doc(db, 'tasks', task.id), {
             order: index,
             updatedAt: serverTimestamp()
-          });
-        });
-
+          })
+        );
         await Promise.all(updatePromises);
       } catch (error) {
         console.error('Error updating task orders:', error);
       }
-    },
-
-    // Edit Task Methods
-    startEditTask(task) {
-      this.editingTask = { ...task };
-    },
-
-    async saveTaskEdit() {
-      if (!this.editingTask || !auth.currentUser) return;
-
-      try {
-        await updateDoc(doc(db, 'tasks', this.editingTask.id), {
-          title: this.editingTask.title.trim(),
-          description: this.editingTask.description,
-          plan: this.editingTask.plan,
-          deadline: this.editingTask.deadline || null,
-          updatedAt: serverTimestamp()
-        });
-
-        // Update local task
-        const taskIndex = this.tasks.findIndex(t => t.id === this.editingTask.id);
-        if (taskIndex !== -1) {
-          this.tasks[taskIndex] = { ...this.editingTask };
-        }
-
-        this.editingTask = null;
-        alert('Task updated successfully!');
-      } catch (error) {
-        console.error('Error updating task:', error);
-        alert('Failed to update task. Please try again.');
-      }
-    },
-
-    cancelEdit() {
-      this.editingTask = null;
     }
   }
 };
 </script>
 
 <style scoped>
-/* Grid pattern and animation styles */
-.bg-grid-pattern {
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 2px, transparent 2px);
-  background-size: 60px 60px;
-}
-
-@keyframes gridMove {
-  0% { background-position: 0 0; }
-  100% { background-position: 60px 60px; }
-}
-
-.animate-gridMove {
-  animation: gridMove 30s linear infinite;
-}
-
-/* Liquid Glass Button Styles */
-.liquid-glass {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: white;
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+/* Animated Background */
+.animated-bg {
   position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
   overflow: hidden;
 }
 
-.liquid-glass::before {
-  content: '';
+.particles {
   position: absolute;
-  top: 0;
-  left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transition: left 0.5s;
 }
 
-.liquid-glass:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: float var(--delay, 0s) linear infinite;
 }
 
-.liquid-glass:hover::before {
-  left: 100%;
+.particle:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+.particle:nth-child(2) { top: 80%; left: 20%; animation-delay: 2s; }
+.particle:nth-child(3) { top: 60%; left: 80%; animation-delay: 4s; }
+.particle:nth-child(4) { top: 30%; left: 70%; animation-delay: 1s; }
+.particle:nth-child(5) { top: 70%; left: 50%; animation-delay: 3s; }
+.particle:nth-child(6) { top: 40%; left: 30%; animation-delay: 5s; }
+.particle:nth-child(7) { top: 90%; left: 60%; animation-delay: 6s; }
+.particle:nth-child(8) { top: 10%; left: 40%; animation-delay: 7s; }
+.particle:nth-child(9) { top: 50%; left: 90%; animation-delay: 8s; }
+.particle:nth-child(10) { top: 25%; left: 85%; animation-delay: 9s; }
+
+@keyframes float {
+  0%, 100% { opacity: 0; transform: translateY(0px); }
+  50% { opacity: 1; transform: translateY(-20px); }
 }
 
-.liquid-glass.danger {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
+.bg-gradient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.3;
+  animation: orbFloat 15s ease-in-out infinite;
 }
 
-.liquid-glass.danger:hover {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: rgba(239, 68, 68, 0.5);
+.orb-1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
 }
 
-.liquid-glass-primary {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.3);
+.orb-2 {
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.3) 0%, transparent 70%);
+  top: 60%;
+  right: 20%;
+  animation-delay: 5s;
 }
 
-.liquid-glass-primary:hover {
-  background: rgba(59, 130, 246, 0.25);
-  border-color: rgba(59, 130, 246, 0.5);
+.orb-3 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
+  bottom: 20%;
+  left: 30%;
+  animation-delay: 10s;
 }
 
-/* Liquid Glass Card for Tasks */
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -30px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.9); }
+  75% { transform: translate(20px, 10px) scale(1.05); }
+}
+
+/* Logo Animation */
+.logo-container {
+  animation: logoGlow 3s ease-in-out infinite;
+}
+
+.shine-animation {
+  position: relative;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes logoGlow {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5)); }
+  50% { filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)); }
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.profile-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.profile-avatar {
+  display: flex;
+  align-items: center;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+}
+
+.dropdown-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  min-width: 180px;
+  border-radius: 12px;
+  padding: 8px 0;
+  z-index: 50;
+}
+
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  color: white;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Liquid Glass Components */
 .liquid-glass-card {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
 }
 
 .liquid-glass-card:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.liquid-glass-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: white;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.liquid-glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.liquid-glass-input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.liquid-glass-button {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: white;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.liquid-glass-button:hover:not(.disabled) {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
-/* Custom scrollbar */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+.liquid-glass-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
+
+/* Layout Components */
+.task-form-container {
+  margin-bottom: 32px;
+  padding: 24px;
 }
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
+
+.form-header {
+  margin-bottom: 20px;
+}
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.form-row:last-child {
+  align-items: stretch;
+}
+
+.input-group,
+.select-group,
+.form-group {
+  flex: 1;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  height: 44px;
+  font-size: 14px;
+}
+
+.form-input.large {
+  height: auto;
+  min-height: 44px;
+  padding: 12px 16px;
+}
+
+.add-button {
+  padding: 12px 20px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+/* Task List */
+.task-list-container {
+  margin-top: 32px;
+}
+
+.task-list-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 8px;
+}
+
+.task-count {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
   border-radius: 20px;
-  border: 3px solid transparent;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-/* Drag and Drop Animations */
-.task-move {
-  transition: transform 0.3s ease;
+.tasks-text-bold {
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(59, 130, 246, 0.6);
 }
 
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item {
+  padding: 16px;
+  transition: all 0.3s ease;
+}
+
+.task-item.completed {
+  opacity: 0.7;
+}
+
+.task-item.dragging {
+  opacity: 0.6;
+  transform: rotate(2deg);
+}
+
+.task-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.task-checkbox:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.task-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.task-title {
+  font-weight: 500;
+  color: white;
+  margin: 0;
+  font-size: 16px;
+}
+
+.task-title.completed {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.task-plan {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.plan-A {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(134, 239, 172);
+}
+
+.plan-B {
+  background: rgba(120, 120, 120, 0.2);
+  color: rgb(200, 200, 200);
+}
+
+.plan-C {
+  background: rgba(120, 120, 120, 0.2);
+  color: rgb(200, 200, 200);
+}
+
+.task-deadline {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+}
+
+.task-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.task-description.completed {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.task-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.task-action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.empty-icon {
+  margin-bottom: 16px;
+}
+
+/* Modal */
+.modal-content {
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+}
+
+.modal-header {
+  margin-bottom: 20px;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-form .form-row {
+  gap: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.btn-secondary {
+  padding: 12px 20px;
+  background: rgba(107, 114, 128, 0.2);
+  border: 1px solid rgba(107, 114, 128, 0.3);
+  border-radius: 12px;
+  color: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: rgba(107, 114, 128, 0.3);
+  border-color: rgba(107, 114, 128, 0.4);
+}
+
+/* Animations */
 .task-enter-active,
 .task-leave-active {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -695,69 +940,83 @@ export default {
   transform: translateX(-100%);
 }
 
-/* Drag Handle Animation */
-.drag-handle {
-  opacity: 0.5;
-  transition: all 0.3s ease;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .task-form-container {
+    padding: 20px;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .form-row:last-child {
+    flex-direction: column;
+  }
+  
+  .task-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .task-meta {
+    align-self: stretch;
+    justify-content: flex-start;
+  }
+  
+  .task-content {
+    gap: 10px;
+  }
+  
+  .task-actions {
+    align-self: flex-start;
+  }
+  
+  .modal-content {
+    padding: 20px;
+    margin: 16px;
+  }
+  
+  .profile-button {
+    padding: 6px 12px;
+  }
+  
+  .profile-name {
+    display: none;
+  }
 }
 
-.group:hover .drag-handle {
-  opacity: 1;
-  transform: scale(1.1);
+@media (max-width: 480px) {
+  .task-form-container {
+    padding: 16px;
+  }
+  
+  .task-item {
+    padding: 12px;
+  }
+  
+  .form-header h2 {
+    font-size: 20px;
+  }
+  
+  .logo-container h1 {
+    font-size: 24px;
+  }
 }
 
-/* Task Item Drag State */
-.task-item.dragging {
-  opacity: 0.6;
-  transform: rotate(2deg);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+/* Custom Scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* Checkbox Styling */
-input[type="checkbox"] {
-  appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-input[type="checkbox"]:checked {
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-color: #10b981;
-}
-
-input[type="checkbox"]:checked::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 0.875rem;
-  font-weight: bold;
-}
-
-input[type="checkbox"]:focus {
-  outline: 2px solid rgba(16, 185, 129, 0.5);
-  outline-offset: 2px;
-}
-
-/* Task Form Styles */
-.tsk-form {
-  width: 50%; /* Reduce width to half of the screen */
-  margin: 0 auto; /* Center the form */
-  padding: 20px; /* Add spacing inside the form */
-  box-sizing: border-box; /* Ensure padding doesn't affect width */
-}
-
-.tsk-form input,
-.tsk-form select,
-.tsk-form button {
-  margin-bottom: 10px; /* Add spacing between elements */
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
 }
 </style>

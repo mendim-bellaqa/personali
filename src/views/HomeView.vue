@@ -154,48 +154,48 @@ export default {
   data() {
     return {
       cards: [
-        { 
-          id: 1, 
-          title: 'TSK', 
+        {
+          id: 1,
+          title: 'TSK',
           subtitle: 'Task Manager',
-          description: 'Task management with archive functionality and real-time sync.',
-          tags: ['Tasks', 'Archive', 'Sync'],
+          description: 'Organize and track your daily tasks efficiently.',
+          tags: ['Tasks', 'Productivity'],
           cta: 'Manage Tasks',
           status: 'active',
           image: require('@/assets/card.jpeg'),
           link: '/tsk'
         },
-        { 
-          id: 2, 
-          title: 'PRY', 
+        {
+          id: 2,
+          title: 'PRY',
           subtitle: 'Project Tracker',
-          description: 'Project management and tracking system with collaboration features.',
-          tags: ['Projects', 'Progress', 'Teams'],
-          cta: 'Track Projects', 
+          description: 'Monitor and manage your projects with ease.',
+          tags: ['Projects', 'Tracking'],
+          cta: 'Track Projects',
           status: 'coming-soon',
           image: require('@/assets/card.jpeg'),
           link: '/pry'
         },
-        { 
-          id: 3, 
-          title: 'MED', 
+        {
+          id: 3,
+          title: 'MED',
           subtitle: 'Focus Timer',
-          description: 'Meditation and focus timer with breathing exercises and analytics.',
-          tags: ['Focus', 'Meditation', 'Wellness'],
+          description: 'Meditate and stay focused with guided sessions.',
+          tags: ['Focus', 'Meditation'],
           cta: 'Start Session',
-          status: 'coming-soon', 
+          status: 'coming-soon',
           image: require('@/assets/card.jpeg'),
           link: '/med'
         },
-        { 
-          id: 4, 
-          title: 'DWN', 
+        {
+          id: 4,
+          title: 'DWN',
           subtitle: 'Calendar',
-          description: 'Calendar system with event management and task integration.',
-          tags: ['Calendar', 'Events', 'Scheduling'],
+          description: 'Plan and schedule your important events.',
+          tags: ['Calendar', 'Events'],
           cta: 'View Calendar',
           status: 'coming-soon',
-          image: require('@/assets/card.jpeg'), 
+          image: require('@/assets/card.jpeg'),
           link: '/dwn'
         }
       ],
@@ -493,9 +493,9 @@ body {
 }
 
 .card-status.coming-soon {
-  background-color: rgba(245, 158, 11, 0.2);
-  color: rgb(253, 224, 71);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: rgba(120, 120, 120, 0.2);
+  color: rgb(200, 200, 200);
+  border: 1px solid rgba(120, 120, 120, 0.3);
 }
 
 /* Action Area */

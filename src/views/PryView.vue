@@ -62,7 +62,7 @@
         <!-- Reset Button (Styled identically to MedView's buttons) -->
         <button
           @click="resetCount"
-          class="px-6 py-2 rounded-lg border border-red-900/50 border-t-red-400/50 bg-gradient-to-b from-red-600 to-red-700 font-semibold text-white shadow-md transform transition-all duration-150 hover:from-red-700 hover:to-red-800 active:scale-95 focus:outline-none"
+          class="px-6 py-2 rounded-lg font-semibold text-white shadow-md transform transition-all duration-150 active:scale-95 focus:outline-none liquid-glass-button"
         >
           Reset (0)
         </button>

@@ -3,11 +3,11 @@
     "tasks": {
       ".read": "auth != null",
       "$taskId": {
-        ".read": "auth != null && (auth.uid == resource.data.userId || auth.uid == resource.userId)",
-        ".write": "auth != null && (auth.uid == request.resource.data.userId || auth.uid == request.resource.userId || !resource.exists)",
+        ".read": "auth != null && auth.uid == resource.data.userId",
+        ".write": "auth != null && auth.uid == request.resource.data.userId",
         ".create": "auth != null && auth.uid == request.resource.data.userId",
-        ".update": "auth != null && (auth.uid == resource.data.userId || auth.uid == resource.userId)",
-        ".delete": "auth != null && (auth.uid == resource.data.userId || auth.uid == resource.userId)"
+        ".update": "auth != null && auth.uid == resource.data.userId",
+        ".delete": "auth != null && auth.uid == resource.data.userId"
       }
     }
   }
