@@ -72,7 +72,7 @@
                 </div>
                 
                 <!-- Card Content -->
-                <div class="relative z-20 p-8 h-80 flex flex-col justify-between">
+                <div class="relative z-20 p- h-80 flex flex-col justify-between">
                   <div>
                     <div class="flex items-center justify-between mb-4">
                       <span class="card-number">{{ String(index + 1).padStart(2, '0') }}</span>
@@ -220,6 +220,8 @@ export default {
       this.setupIntersectionObserver();
       this.scrollToCard(0, 'auto');
       this.startAutoplay();
+      // start a smooth continuous loop scrolling for desktop
+      this.startContinuousLoop();
     });
   },
   beforeDestroy() {
@@ -227,6 +229,7 @@ export default {
       this.intersectionObserver.disconnect();
     }
     this.stopAutoplay();
+    this.stopContinuousLoop();
   },
   methods: {
     startAutoplay() {
@@ -240,6 +243,44 @@ export default {
       if (this.autoplayInterval) {
         clearInterval(this.autoplayInterval);
         this.autoplayInterval = null;
+      }
+    },
+
+    startContinuousLoop() {
+      // only enable continuous loop on non-touch devices
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobile) return;
+
+      const container = this.$refs.scrollContainer;
+      if (!container) return;
+
+      let speed = 0.25; // px per frame
+      let rafId;
+
+      const step = () => {
+        if (!container) return;
+        container.scrollLeft += speed;
+        // loop
+        if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 2)) {
+          container.scrollLeft = 0;
+        }
+        rafId = requestAnimationFrame(step);
+      };
+
+      // start after small delay
+      setTimeout(() => {
+        rafId = requestAnimationFrame(step);
+      }, 1200);
+
+      // store on component to cancel later
+      this._continuousRaf = rafId;
+      this._continuousStep = step;
+    },
+
+    stopContinuousLoop() {
+      if (this._continuousRaf) {
+        cancelAnimationFrame(this._continuousRaf);
+        this._continuousRaf = null;
       }
     },
 
@@ -575,7 +616,7 @@ body {
 @media (max-width: 640px) {
   .card-container {
     width: 18rem;
-    height: 20rem;
+    height: 25rem;
   }
   
   .card-container:hover {

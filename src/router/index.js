@@ -8,6 +8,8 @@ import DWNView from '../views/DWNView.vue'  // Good, uncommented and used
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
+import ProfileView from '../views/ProfileView.vue'
+import SettingsView from '../views/SettingsView.vue'
 import { auth } from '../services/firebase';
 
 Vue.use(VueRouter)
@@ -18,6 +20,8 @@ const routes = [
   { path: '/register', name: 'Register', component: RegisterView },
   { path: '/tsk', name: 'Tsk', component: TskView, meta: { requiresAuth: true } },
   { path: '/pry', name: 'PG', component: PryView, meta: { requiresAuth: true } },
+  { path: '/profile', name: 'Profile', component: ProfileView, meta: { requiresAuth: true } },
+  { path: '/settings', name: 'Settings', component: SettingsView, meta: { requiresAuth: true } },
   { path: '/med', name: 'SC', component: MedView, meta: { requiresAuth: true } },
   { path: '/dwn', name: 'DWN', component: DWNView, meta: { requiresAuth: true } },
   { path: '/archive', name: 'Archive', component: ArchiveView, meta: { requiresAuth: true } },

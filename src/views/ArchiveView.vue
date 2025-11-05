@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white select-none">
+    <UniversalBanner />
     <!-- Animated Grid Background -->
     <div class="fixed inset-0 z-0 opacity-20">
       <div class="bg-grid-pattern animate-gridMove"></div>
@@ -145,6 +146,7 @@
 </template>
 
 <script>
+import UniversalBanner from '@/components/UniversalBanner.vue';
 import {
   collection,
   updateDoc,
@@ -160,6 +162,7 @@ import {
 import { auth, db } from '../services/firebase';
 
 export default {
+  components: { UniversalBanner },
   name: 'ArchiveView',
   data() {
     return {
@@ -429,6 +432,33 @@ router-link.text-xs:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
+
+/* Floating 3D animation for archive items */
+.task-item {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  animation: float3D 8s ease-in-out infinite;
+}
+
+@keyframes float3D {
+  0% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
+  25% { transform: translateY(-6px) rotateX(1deg) rotateY(-1deg); }
+  50% { transform: translateY(0px) rotateX(0deg) rotateY(1deg); }
+  75% { transform: translateY(6px) rotateX(-1deg) rotateY(0deg); }
+  100% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
+}
+
+/* Subtle rotating orbs in the archive background */
+.archive-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(36px);
+  opacity: 0.12;
+  pointer-events: none;
+}
+.orb-a { width: 300px; height: 300px; background: radial-gradient(circle, rgba(99,102,241,0.6), transparent); top: 12%; left: 6%; animation: orbSpin 20s linear infinite; }
+.orb-b { width: 220px; height: 220px; background: radial-gradient(circle, rgba(236,72,153,0.5), transparent); bottom: 8%; right: 6%; animation: orbSpin 26s linear infinite reverse; }
+@keyframes orbSpin { from { transform: rotate(0deg) translateX(0px); } to { transform: rotate(360deg) translateX(0px); } }
 
 /* Custom scrollbar */
 .overflow-y-auto::-webkit-scrollbar {

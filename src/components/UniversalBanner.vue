@@ -141,22 +141,21 @@ export default {
   border: none;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 0;
-  padding: 16px 24px;
+  border-radius: 12px;
+  padding: 12px 18px;
   width: 100%;
-  max-width: none;
+  max-width: 1100px;
+  margin: 0 auto;
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    0 6px 30px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
   pointer-events: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.banner-container:hover {
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+/* Keep banner background subtle and don't change on hover */
+.banner-container {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 /* Logo Section */

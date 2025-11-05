@@ -1,6 +1,7 @@
 <!-- C:\laragon\www\pass\src\views\DWNView.vue -->
 <template>
   <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white">
+    <UniversalBanner />
     
     <!-- Animated Grid Background -->
     <div class="absolute inset-0 z-0 bg-grid-pattern animate-gridMove"></div>
@@ -50,8 +51,11 @@
 </template>
 
 <script>
+import UniversalBanner from '@/components/UniversalBanner.vue';
+
 export default {
   name: 'DWNView',
+  components: { UniversalBanner },
   data() {
     const today = new Date();
     return {

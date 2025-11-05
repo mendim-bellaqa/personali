@@ -1,5 +1,6 @@
 <template>
   <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white select-none">
+    <UniversalBanner />
     
     <!-- Animated Grid Background (Identical to MedView) -->
     <div class="absolute inset-0 z-0 bg-grid-pattern animate-gridMove"></div>
@@ -76,7 +77,8 @@
 </template>
 
 <script>
-// The script remains the same as it handles logic, not styling.
+import UniversalBanner from '@/components/UniversalBanner.vue';
+
 export default {
   name: 'PryView',
   data() {
@@ -89,6 +91,8 @@ export default {
       messageTimeout: null,
     };
   },
+  components: { UniversalBanner },
+
   methods: {
     incrementCount() {
       if (this.count < this.MAX_COUNT) {

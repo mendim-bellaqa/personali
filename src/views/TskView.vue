@@ -208,9 +208,9 @@
 
     <!-- Footer Section -->
     <footer class="footer footer-fixed" role="contentinfo">
-      <button @click="sendMarkedToArchive" class="footer-btn">Sent market to archived</button>
-      <button @click="viewArchivedTasks" class="footer-btn">View archived tasks</button>
-      <button @click="backToCollection" class="footer-btn">Back to collection</button>
+      <button @click="sendMarkedToArchive" class="footer-btn">DONE</button>
+      <button @click="viewArchivedTasks" class="footer-btn">ARCHIVE</button>
+      <button @click="backToCollection" class="footer-btn">Collection</button>
     </footer>
   </div>
 </template>
@@ -1055,7 +1055,13 @@ export default {
 
   .form-input,
   .form-select {
-    width: 100%;
+    width: 70%;
+        padding-top: 16px;
+    align-content: center;
+    position: relative;
+    text-align: center;
+    margin-left: 50px;
+
   }
 
   .task-list-container {

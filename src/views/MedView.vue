@@ -1,5 +1,6 @@
 <template>
   <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-4">
+    <UniversalBanner />
     <!-- Grid Animated Background -->
     <div class="absolute inset-0 z-0 bg-grid-pattern animate-gridMove"></div>
 
@@ -51,8 +52,11 @@
 </template>
 
 <script>
+import UniversalBanner from '@/components/UniversalBanner.vue';
+
 export default {
   name: "MedView",
+  components: { UniversalBanner },
   data() {
     return {
       totalSeconds: 12 * 60,
