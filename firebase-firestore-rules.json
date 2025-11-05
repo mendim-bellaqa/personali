@@ -9,6 +9,10 @@
         ".update": "auth != null && auth.uid == resource.data.userId",
         ".delete": "auth != null && auth.uid == resource.data.userId"
       }
+    },
+    "users": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     }
   }
 }

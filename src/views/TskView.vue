@@ -266,31 +266,30 @@ export default {
     },
 
     async addTask() {
-      if (!this.form.title.trim() || !auth.currentUser) return;
-
       try {
+        if (!this.form.title.trim()) {
+          throw new Error('Task title cannot be empty');
+        }
+
         const newTask = {
-          title: this.form.title.trim(),
-          plan: this.form.plan,
+          title: this.form.title,
           description: this.form.description,
-          deadline: this.form.deadline || null,
+          plan: this.form.plan,
+          deadline: this.form.deadline,
           completed: false,
-          archived: false,
-          userId: auth.currentUser.uid,
-          order: this.tasks.length,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+          userId: auth.currentUser.uid
         };
 
-        await addDoc(collection(db, 'tasks'), newTask);
+        const docRef = await addDoc(collection(db, 'tasks'), newTask);
+        console.log('Task added with ID:', docRef.id);
 
-        // Reset form
-        this.form = {
-          title: '',
-          plan: 'A',
-          description: '',
-          deadline: ''
-        };
+        this.tasks.push({ id: docRef.id, ...newTask });
+
+        // Clear form
+        this.form.title = '';
+        this.form.description = '';
+        this.form.plan = 'A';
+        this.form.deadline = '';
       } catch (error) {
         console.error('Error adding task:', error);
         alert('Failed to add task. Please try again.');

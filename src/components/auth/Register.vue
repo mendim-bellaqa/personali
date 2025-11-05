@@ -211,22 +211,22 @@ export default {
         const result = await signInWithPopup(auth, provider);
         console.log('Google registration successful:', result.user.uid);
 
-        this.showMessage('Account created successfully with Google!', 'success');
-        
-        // Wait a moment then emit login event
-        setTimeout(() => {
+        // Ensure user is authenticated and redirect
+        if (result.user) {
           this.$emit('login', result.user);
           this.$router.push('/');
-        }, 1500);
+        } else {
+          throw new Error('Google authentication failed.');
+        }
 
       } catch (error) {
         console.error('Google registration error:', error);
-        
+
         let errorMessage = 'Google registration failed';
         if (error.code === 'auth/popup-closed-by-user') {
           errorMessage = 'Registration cancelled. Please try again.';
         }
-        
+
         this.showMessage(errorMessage, 'error');
       } finally {
         this.loading = false;

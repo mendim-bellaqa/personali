@@ -327,6 +327,15 @@ export default {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* Add smoother swipe animation for cards */
+.swipe-card {
+  transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+.swipe-card:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
 /* Animations */
 @keyframes shine {
   0% { background-position: -200% 0; }

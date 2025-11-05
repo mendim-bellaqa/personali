@@ -7,7 +7,7 @@
     </div>
 
     <!-- Main Content with proper top padding for UniversalBanner -->
-    <main class="relative z-10 pt-24">
+    <main class="relative z-10 pt-16">
       <router-view @login="onLogin" />
     </main>
   </div>
@@ -74,5 +74,10 @@ export default {
 
 .animate-gridMove {
   animation: gridMove 60s linear infinite;
+}
+
+/* Adjust spacing for header and title */
+#app main {
+  padding-top: 16px; /* Reduce top padding */
 }
 </style>
