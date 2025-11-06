@@ -1,144 +1,150 @@
 <template>
-  <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white select-none">
+  <div class="min-h-screen bg-black overflow-hidden text-white select-none relative">
     <UniversalBanner />
-    <!-- Animated Grid Background -->
+    
+    <!-- Animated Background Grid -->
     <div class="fixed inset-0 z-0 opacity-20">
       <div class="bg-grid-pattern animate-gridMove"></div>
     </div>
 
-    <!-- Main Liquid Glass Container -->
-    <div class="relative z-10 flex flex-col w-full max-w-2xl max-w-[95vw] h-[90vh] max-h-[900px] rounded-3xl border border-white/20 border-t-white/30 bg-gradient-to-b from-white/20 to-white/10 shadow-2xl backdrop-blur-2xl overflow-hidden">
-      
+    <!-- Dynamic Floating Orbs Background -->
+    <div class="fixed inset-0 z-0">
+      <div 
+        v-for="orb in backgroundOrbs" 
+        :key="orb.id"
+        class="archive-orb"
+        :class="orb.class"
+        :style="{
+          width: orb.size + 'px',
+          height: orb.size + 'px',
+          top: orb.top + '%',
+          left: orb.left + '%',
+          animationDelay: orb.delay + 's',
+          animationDuration: orb.duration + 's'
+        }"
+      ></div>
+    </div>
+
+    <!-- Main Bubble Map Container -->
+    <div class="relative z-10 w-full h-screen flex flex-col">
       <!-- Header -->
-      <header class="text-center p-4 sm:p-6 border-b border-white/10 bg-gradient-to-b from-white/10 to-transparent">
-        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">ARCHIVE</h1>
-        <p class="mt-1 text-gray-300 text-sm">Completed tasks and memories</p>
+      <header class="text-center p-5 pt-20">
+        <div class="container mx-auto">
+          <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent mb-3">
+            ARCHIVE BUBBLES
+          </h1>
+          <p class="text-gray-300 text-sm">Your completed memories floating in space</p>
+        </div>
       </header>
 
-      <!-- Archive Task List -->
-      <div class="flex-grow overflow-hidden">
-        <div class="h-full overflow-y-auto p-4 sm:p-6">
-          <div class="space-y-3">
-            <transition-group name="task" tag="div">
-              <div
-                v-for="task in archivedTasks"
-                :key="task.id"
-                class="task-item liquid-glass-card p-3 sm:p-5 rounded-2xl border border-white/20 hover:border-white/30 transition-all duration-300 group"
-              >
-                <div class="flex items-start gap-3">
-                  <!-- Archive Icon -->
-                  <div class="flex-shrink-0 mt-1">
-                    <div class="w-4 h-4 sm:w-5 sm:h-5 bg-purple-500/20 rounded-full flex items-center justify-center">
-                      <svg class="w-2 h-2 sm:w-3 sm:h-3 text-purple-300" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/>
-                      </svg>
-                    </div>
-                  </div>
-
-                  <!-- Task Content -->
-                  <div class="flex-grow min-w-0">
-                    <div class="flex items-start justify-between gap-2 mb-2">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <h3 class="font-semibold text-sm sm:text-lg text-white line-through opacity-75">
-                          {{ task.title }}
-                        </h3>
-                        <span
-                          :class="[
-                            'px-2 py-1 text-xs rounded-full flex-shrink-0',
-                            task.plan === 'A' ? 'bg-green-500/20 text-green-300' :
-                            task.plan === 'B' ? 'bg-yellow-500/20 text-yellow-300' :
-                            'bg-red-500/20 text-red-300'
-                          ]"
-                        >
-                          {{ task.plan }}
-                        </span>
-                      </div>
-                      <span class="text-xs sm:text-sm text-gray-400 flex-shrink-0">{{ formatDate(task.deadline) }}</span>
-                    </div>
-                    
-                    <p v-if="task.description" class="text-xs sm:text-sm mb-3 leading-relaxed text-gray-400 line-through opacity-75">
-                      {{ task.description }}
-                    </p>
-
-                    <!-- Completed Date -->
-                    <div class="text-xs text-purple-300 mb-3">
-                      ✅ Completed on {{ formatCompletionDate(task.completedAt) }}
-                    </div>
-
-                    <!-- Image Preview -->
-                    <div v-if="task.imageUrl" class="mt-3">
-                      <img
-                        :src="task.imageUrl"
-                        class="max-h-20 sm:max-h-32 rounded-lg border border-white/20 opacity-75"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Action Buttons -->
-                  <div class="flex gap-2 flex-shrink-0">
-                    <!-- Restore Button -->
-                    <button
-                      @click="restoreTask(task.id)"
-                      class="p-2 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                      title="Restore to active tasks"
-                    >
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-
-                    <!-- Delete Button -->
-                    <button
-                      @click="permanentDeleteTask(task.id)"
-                      class="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-                      title="Permanently delete"
-                    >
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L8.586 12l-1.293 1.293a1 1 0 101.414 1.414L9 13.414l1.293 1.293a1 1 0 001.414-1.414L10.414 12l1.293-1.293z" clip-rule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
+      <!-- Bubble Map Area -->
+      <main class="flex-grow relative overflow-hidden">
+        <div class="bubble-map-container">
+          <div
+            v-for="task in animatedArchivedTasks"
+            :key="task.id"
+            class="archive-bubble liquid-glass-bubble"
+            :class="[`bubble-${task.plan.toLowerCase()}`, { 'bubble-active': task.isHovered }]"
+            :style="{
+              transform: `translate(${task.x}px, ${task.y}px) scale(${task.scale})`,
+              width: task.size + 'px',
+              height: task.size + 'px',
+              animationDuration: task.duration + 's',
+              animationDelay: task.delay + 's'
+            }"
+            @mouseenter="onBubbleHover(task, true)"
+            @mouseleave="onBubbleHover(task, false)"
+            @click="handleBubbleClick(task)"
+          >
+            <!-- Bubble Content -->
+            <div class="bubble-content">
+              <!-- Task Title -->
+              <h3 class="bubble-title" :class="{ 'line-through': task.completed }">
+                {{ task.title }}
+              </h3>
+              
+              <!-- Plan Badge -->
+              <div class="bubble-plan" :class="`plan-${task.plan}`">
+                {{ task.plan }}
               </div>
-            </transition-group>
-
-            <!-- Empty State -->
-            <div v-if="archivedTasks.length === 0" class="text-center py-12 sm:py-16">
-              <div class="text-gray-400 mb-4">
-                <svg class="w-16 h-16 sm:w-20 sm:h-20 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/>
-                </svg>
+              
+              <!-- Completion Date -->
+              <div class="bubble-date">
+                {{ formatCompletionDate(task.completedAt) }}
               </div>
-              <h3 class="text-lg sm:text-xl font-semibold text-gray-300 mb-2">No archived tasks</h3>
-              <p class="text-gray-400 text-sm">Completed tasks will appear here when you archive them.</p>
+              
+              <!-- Action Icons -->
+              <div class="bubble-actions">
+                <button 
+                  @click.stop="restoreTask(task.id)" 
+                  class="bubble-action restore"
+                  title="Restore task"
+                >
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <button 
+                  @click.stop="permanentDeleteTask(task.id)" 
+                  class="bubble-action delete"
+                  title="Delete forever"
+                >
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L8.586 12l-1.293 1.293a1 1 0 101.414 1.414L9 13.414l1.293 1.293a1 1 0 001.414-1.414L10.414 12l1.293-1.293z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
             </div>
+
+            <!-- Bubble Glow Effect -->
+            <div class="bubble-glow"></div>
+          </div>
+
+          <!-- Empty State when no tasks -->
+          <div v-if="archivedTasks.length === 0" class="empty-bubble-state">
+            <div class="empty-bubble-icon">
+              <svg class="w-20 h-20 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-300 mb-2">No archived bubbles</h3>
+            <p class="text-gray-400 text-sm">Completed tasks will appear here as floating memories.</p>
           </div>
         </div>
-      </div>
+      </main>
 
       <!-- Footer Controls -->
-      <footer class="p-4 border-t border-white/10 bg-gradient-to-t from-white/5 to-transparent">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
-          <div class="flex gap-2 sm:gap-3 flex-wrap">
-            <button
-              v-if="archivedTasks.length > 0"
-              @click="restoreAllTasks"
-              class="px-3 py-2 liquid-glass text-xs sm:text-sm"
-            >
-              🔄 Restore All ({{ archivedTasks.length }})
-            </button>
-            <button
-              v-if="archivedTasks.length > 0"
-              @click="clearAllArchived"
-              class="px-3 py-2 liquid-glass danger text-xs sm:text-sm"
-            >
-              🗑️ Clear All
-            </button>
+      <footer class="p-5 text-center">
+        <div class="container mx-auto">
+          <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <div class="flex gap-3">
+              <button
+                v-if="archivedTasks.length > 0"
+                @click="restoreAllTasks"
+                class="bubble-control restore-all"
+              >
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                </svg>
+                Restore All ({{ archivedTasks.length }})
+              </button>
+              <button
+                v-if="archivedTasks.length > 0"
+                @click="clearAllArchived"
+                class="bubble-control clear-all"
+              >
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L8.586 12l-1.293 1.293a1 1 0 101.414 1.414L9 13.414l1.293 1.293a1 1 0 001.414-1.414L10.414 12l1.293-1.293z" clip-rule="evenodd" />
+                </svg>
+                Clear All
+              </button>
+            </div>
+            <router-link to="/tsk" class="bubble-link">
+              ← Back to Tasks
+            </router-link>
           </div>
-          <router-link to="/tsk" class="text-xs sm:text-sm text-blue-400 hover:text-blue-300 transition-colors">
-            ← Back to Tasks
-          </router-link>
         </div>
       </footer>
     </div>
@@ -167,11 +173,26 @@ export default {
   data() {
     return {
       archivedTasks: [],
-      loading: false
+      animatedArchivedTasks: [],
+      backgroundOrbs: [
+        { id: 1, class: 'orb-a', size: 300, top: 12, left: 6, delay: 0, duration: 20 },
+        { id: 2, class: 'orb-b', size: 220, top: 70, left: 75, delay: 5, duration: 26 },
+        { id: 3, class: 'orb-c', size: 180, top: 30, left: 85, delay: 10, duration: 18 },
+        { id: 4, class: 'orb-d', size: 250, top: 60, left: 15, delay: 15, duration: 22 }
+      ],
+      animationFrame: null,
+      containerBounds: { width: 0, height: 0 }
     };
   },
   mounted() {
     this.loadArchivedTasks();
+    this.updateContainerBounds();
+    window.addEventListener('resize', this.updateContainerBounds);
+    this.startBubbleAnimation();
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.updateContainerBounds);
+    this.stopBubbleAnimation();
   },
   methods: {
     async loadArchivedTasks() {
@@ -180,7 +201,6 @@ export default {
         return;
       }
 
-      this.loading = true;
       try {
         const tasksQuery = query(
           collection(db, 'tasks'),
@@ -194,12 +214,118 @@ export default {
             id: doc.id,
             ...doc.data()
           }));
-          this.loading = false;
+          this.initializeBubbleAnimations();
         });
       } catch (error) {
         console.error('Error loading archived tasks:', error);
-        this.loading = false;
       }
+    },
+
+    initializeBubbleAnimations() {
+      this.animatedArchivedTasks = this.archivedTasks.map((task) => ({
+        ...task,
+        x: Math.random() * (this.containerBounds.width - 200),
+        y: Math.random() * (this.containerBounds.height - 200),
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        // keep original velocities to restore after hover
+        origVx: null,
+        origVy: null,
+        scale: 0.8 + Math.random() * 0.4,
+        size: 120 + Math.random() * 60,
+        duration: 15 + Math.random() * 20,
+        delay: Math.random() * 5,
+        isHovered: false,
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 2
+      }));
+
+      // set origVx/origVy after initial velocities are generated
+      this.animatedArchivedTasks.forEach(b => {
+        b.origVx = b.vx;
+        b.origVy = b.vy;
+      });
+    },
+
+    startBubbleAnimation() {
+      const animate = () => {
+        this.animatedArchivedTasks.forEach(bubble => {
+          // Update position
+          bubble.x += bubble.vx;
+          bubble.y += bubble.vy;
+          
+          // Boundary collision detection
+          if (bubble.x <= 0 || bubble.x >= this.containerBounds.width - bubble.size) {
+            bubble.vx *= -1;
+            bubble.x = Math.max(0, Math.min(bubble.x, this.containerBounds.width - bubble.size));
+          }
+          if (bubble.y <= 0 || bubble.y >= this.containerBounds.height - bubble.size) {
+            bubble.vy *= -1;
+            bubble.y = Math.max(0, Math.min(bubble.y, this.containerBounds.height - bubble.size));
+          }
+
+          // Random direction changes
+          if (Math.random() < 0.01) {
+            bubble.vx += (Math.random() - 0.5) * 0.5;
+            bubble.vy += (Math.random() - 0.5) * 0.5;
+            
+            // Limit velocity
+            bubble.vx = Math.max(-3, Math.min(3, bubble.vx));
+            bubble.vy = Math.max(-3, Math.min(3, bubble.vy));
+          }
+
+          // Gentle rotation
+          bubble.rotation += bubble.rotationSpeed;
+        });
+
+        this.animationFrame = requestAnimationFrame(animate);
+      };
+
+      this.animationFrame = requestAnimationFrame(animate);
+    },
+
+    stopBubbleAnimation() {
+      if (this.animationFrame) {
+        cancelAnimationFrame(this.animationFrame);
+        this.animationFrame = null;
+      }
+    },
+
+    updateContainerBounds() {
+      const container = document.querySelector('.bubble-map-container');
+      if (container) {
+        this.containerBounds = {
+          width: container.clientWidth,
+          height: container.clientHeight
+        };
+        this.initializeBubbleAnimations();
+      }
+    },
+
+    onBubbleHover(task, isHovered) {
+      task.isHovered = isHovered;
+      if (isHovered) {
+        // pause this bubble movement and slightly enlarge
+        task.scale = 1.12;
+        // store current velocities if not stored
+        if (typeof task.origVx !== 'number') task.origVx = task.vx;
+        if (typeof task.origVy !== 'number') task.origVy = task.vy;
+        task.vx = 0;
+        task.vy = 0;
+      } else {
+        // restore previous velocities and scale
+        task.scale = 0.9 + Math.random() * 0.2;
+        if (typeof task.origVx === 'number') task.vx = task.origVx;
+        if (typeof task.origVy === 'number') task.vy = task.origVy;
+      }
+    },
+
+    handleBubbleClick(task) {
+      // Add a click effect
+      task.scale = 1.2;
+      setTimeout(() => {
+        task.scale = 1;
+      }, 200);
     },
 
     async restoreTask(taskId) {
@@ -326,166 +452,343 @@ export default {
   animation: gridMove 30s linear infinite;
 }
 
-/* Liquid Glass Button Styles - Improved White Glass Design */
-.liquid-glass {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: white;
-  border-radius: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.liquid-glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(255, 255, 255, 0.15),
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.liquid-glass:hover {
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(255, 255, 255, 0.1);
-}
-
-.liquid-glass:hover::before {
-  left: 100%;
-}
-
-.liquid-glass.danger {
-  background: rgba(120, 120, 120, 0.1);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 4px 16px rgba(120, 120, 120, 0.2);
-}
-
-.liquid-glass.danger:hover {
-  background: rgba(120, 120, 120, 0.15);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 8px 32px rgba(120, 120, 120, 0.3),
-    0 0 20px rgba(120, 120, 120, 0.2);
-}
-
-/* Back to Tasks Link Enhancement */
-router-link.text-xs {
-  background: rgba(59, 130, 246, 0.1);
-  border: none;
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  color: rgb(96, 165, 250);
-  border-radius: 12px;
-  padding: 8px 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-router-link.text-xs:hover {
-  background: rgba(59, 130, 246, 0.15);
-  color: rgb(147, 197, 253);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 8px 32px rgba(59, 130, 246, 0.2);
-}
-
-/* Liquid Glass Card for Tasks */
-.liquid-glass-card {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.liquid-glass-card:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-}
-
-/* Floating 3D animation for archive items */
-.task-item {
-  transform-style: preserve-3d;
-  perspective: 1000px;
-  animation: float3D 8s ease-in-out infinite;
-}
-
-@keyframes float3D {
-  0% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
-  25% { transform: translateY(-6px) rotateX(1deg) rotateY(-1deg); }
-  50% { transform: translateY(0px) rotateX(0deg) rotateY(1deg); }
-  75% { transform: translateY(6px) rotateX(-1deg) rotateY(0deg); }
-  100% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
-}
-
-/* Subtle rotating orbs in the archive background */
+/* Dynamic Background Orbs */
 .archive-orb {
   position: absolute;
   border-radius: 50%;
   filter: blur(36px);
   opacity: 0.12;
   pointer-events: none;
-}
-.orb-a { width: 300px; height: 300px; background: radial-gradient(circle, rgba(99,102,241,0.6), transparent); top: 12%; left: 6%; animation: orbSpin 20s linear infinite; }
-.orb-b { width: 220px; height: 220px; background: radial-gradient(circle, rgba(236,72,153,0.5), transparent); bottom: 8%; right: 6%; animation: orbSpin 26s linear infinite reverse; }
-@keyframes orbSpin { from { transform: rotate(0deg) translateX(0px); } to { transform: rotate(360deg) translateX(0px); } }
-
-/* Custom scrollbar */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
-}
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  border: 3px solid transparent;
+  animation: orbFloat 20s ease-in-out infinite;
 }
 
-/* Task Animations */
-.task-enter-active,
-.task-leave-active {
+.orb-a { 
+  background: radial-gradient(circle, rgba(99,102,241,0.6), transparent); 
+}
+
+.orb-b { 
+  background: radial-gradient(circle, rgba(236,72,153,0.5), transparent); 
+  animation-direction: reverse;
+}
+
+.orb-c { 
+  background: radial-gradient(circle, rgba(34,197,94,0.4), transparent); 
+}
+
+.orb-d { 
+  background: radial-gradient(circle, rgba(251,191,36,0.5), transparent); 
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25% { transform: translate(30px, -30px) scale(1.1) rotate(90deg); }
+  50% { transform: translate(-20px, 20px) scale(0.9) rotate(180deg); }
+  75% { transform: translate(20px, 10px) scale(1.05) rotate(270deg); }
+}
+
+/* Bubble Map Container */
+.bubble-map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Archive Bubbles */
+.archive-bubble {
+  position: absolute;
+  border-radius: 50%;
+  cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: bubbleFloat 15s ease-in-out infinite;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  z-index: 10;
 }
 
-.task-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
+.archive-bubble:hover {
+  z-index: 20;
+  filter: brightness(1.1);
 }
 
-.task-leave-to {
+.liquid-glass-bubble {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.liquid-glass-bubble:hover {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.bubble-active {
+  transform: scale(1.15) !important;
+  z-index: 30;
+}
+
+/* Bubble Content */
+.bubble-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 2;
+}
+
+.bubble-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 8px;
+  line-height: 1.2;
+  max-width: 90%;
+  word-wrap: break-word;
+}
+
+.bubble-title.line-through {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.bubble-plan {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.plan-a {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(134, 239, 172);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.plan-b {
+  background: rgba(251, 191, 36, 0.2);
+  color: rgb(253, 224, 71);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.plan-c {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(252, 165, 165);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.bubble-date {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+}
+
+.bubble-actions {
+  display: flex;
+  gap: 4px;
   opacity: 0;
-  transform: translateX(-100%);
+  transition: opacity 0.3s ease;
+}
+
+.archive-bubble:hover .bubble-actions {
+  opacity: 1;
+}
+
+.bubble-action {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.bubble-action.restore {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(134, 239, 172);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.bubble-action.delete {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(252, 165, 165);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.bubble-action:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Bubble Glow Effect */
+.bubble-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), transparent 50%);
+  animation: bubbleGlow 4s ease-in-out infinite alternate;
+  z-index: 1;
+}
+
+@keyframes bubbleGlow {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.6; }
+}
+
+@keyframes bubbleFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% { 
+    transform: translateY(-10px) rotate(1deg);
+  }
+  50% { 
+    transform: translateY(-5px) rotate(-0.5deg);
+  }
+  75% { 
+    transform: translateY(-8px) rotate(0.8deg);
+  }
+}
+
+/* Empty State */
+.empty-bubble-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 5;
+}
+
+.empty-bubble-icon {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* Footer Controls */
+.bubble-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.bubble-control.restore-all {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(134, 239, 172);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.bubble-control.restore-all:hover {
+  background: rgba(34, 197, 94, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2);
+}
+
+.bubble-control.clear-all {
+  background: rgba(239, 68, 68, 0.1);
+  color: rgb(252, 165, 165);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.bubble-control.clear-all:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
+}
+
+.bubble-link {
+  padding: 10px 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  color: rgb(96, 165, 250);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(15px);
+}
+
+.bubble-link:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: rgb(147, 197, 253);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .bubble-content {
+    padding: 12px;
+  }
+  
+  .bubble-title {
+    font-size: 12px;
+  }
+  
+  .bubble-plan {
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+  
+  .bubble-date {
+    font-size: 9px;
+  }
+  
+  .bubble-action {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .archive-bubble {
+    min-width: 100px;
+    min-height: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bubble-content {
+    padding: 8px;
+  }
+  
+  .bubble-title {
+    font-size: 11px;
+  }
+  
+  .archive-bubble {
+    min-width: 90px;
+    min-height: 90px;
+  }
+  
+  .bubble-control {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
 }
 </style>

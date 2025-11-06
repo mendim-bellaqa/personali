@@ -1,9 +1,9 @@
 <template>
-  <div class="relative min-h-screen bg-black overflow-hidden flex items-start justify-center p-4 text-white">
+  <div class="relative min-h-screen bg-black overflow-hidden flex items-start justify-center p-5 text-white">
     <UniversalBanner />
 
-    <main class="relative z-10 w-full max-w-3xl mx-auto mt-28">
-      <div class="liquid-glass-card p-6">
+    <main class="relative z-10 w-full max-w-3xl mx-auto mt-32">
+      <div class="liquid-glass-card p-8">
         <h2 class="text-2xl font-bold mb-2">Preferences</h2>
         <p class="text-gray-300 mb-6">Configure your app preferences.</p>
 

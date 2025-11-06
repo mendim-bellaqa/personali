@@ -1,6 +1,6 @@
 <!-- C:\laragon\www\pass\src\views\DWNView.vue -->
 <template>
-  <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white">
+  <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-5 text-white">
     <UniversalBanner />
     
     <!-- Animated Grid Background -->

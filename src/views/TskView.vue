@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white select-none relative">
+  <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-5 text-white select-none relative">
     <!-- Universal Banner -->
     <UniversalBanner />
     
@@ -21,15 +21,15 @@
       <div class="task-form-container liquid-glass-card">
         <!-- Form Header -->
         <div class="form-header">
-          <h2 class="text-2xl font-bold text-white mb-2">Add New Task</h2>
+          <h2 class="text-2xl font-bold text-white mb-3">Add New Task</h2>
           <p class="text-gray-300 text-sm">Organize your day efficiently</p>
         </div>
 
         <!-- Task Form -->
         <form @submit.prevent="addTask" class="task-form">
-          <!-- Task Title Row -->
+          <!-- Task Title (full width) -->
           <div class="form-row">
-            <div class="input-group">
+            <div class="input-group full-width">
               <input
                 type="text"
                 v-model="form.title"
@@ -37,43 +37,54 @@
                 class="form-input liquid-glass-input"
               />
             </div>
-            <div class="select-group">
+          </div>
+
+          <!-- Description (full width) -->
+          <div class="form-row">
+            <div class="input-group full-width">
+              <textarea
+                v-model="form.description"
+                placeholder="Additional details..."
+                rows="2"
+                class="form-input liquid-glass-input resize-none"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Plan and Deadline on one row -->
+          <div class="form-row form-row-split">
+            <div class="split-half">
               <select v-model="form.plan" class="form-select liquid-glass-input">
                 <option value="A">Plan A</option>
                 <option value="B">Plan B</option>
                 <option value="C">Plan C</option>
               </select>
             </div>
+
+            <div class="split-half">
+              <input
+                type="date"
+                v-model="form.deadline"
+                class="form-input liquid-glass-input"
+              />
+            </div>
           </div>
 
-          <!-- Description -->
+          <!-- Add Button (full width) -->
           <div class="form-row">
-            <textarea
-              v-model="form.description"
-              placeholder="Additional details..."
-              rows="2"
-              class="form-input liquid-glass-input resize-none"
-            ></textarea>
-          </div>
-
-          <!-- Deadline and Action Row -->
-          <div class="form-row">
-            <input
-              type="date"
-              v-model="form.deadline"
-              class="form-input liquid-glass-input"
-            />
-            <button
-              type="submit"
-              :disabled="!form.title.trim()"
-              class="add-button liquid-glass-button"
-              :class="{ 'disabled': !form.title.trim() }"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              <span>Add Task</span>
-            </button>
+            <div class="input-group full-width">
+              <button
+                type="submit"
+                :disabled="!form.title.trim()"
+                class="add-button liquid-glass-button full-width"
+                :class="{ 'disabled': !form.title.trim() }"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>Add Task</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -294,11 +305,9 @@ export default {
           updatedAt: new Date()
         };
 
-        const docRef = await addDoc(collection(db, 'tasks'), newTask);
-        console.log('Task added with ID:', docRef.id);
-
-        // Add task with transition effect
-        this.tasks = [...this.tasks, { id: docRef.id, ...newTask }];
+  const docRef = await addDoc(collection(db, 'tasks'), newTask);
+  console.log('Task added with ID:', docRef.id);
+  // Do NOT push the new task locally here — the onSnapshot listener will update the UI.
 
         // Clear form
         this.form.title = '';
@@ -697,7 +706,9 @@ export default {
 /* Layout Components */
 .task-form-container {
   margin-bottom: 32px;
-  padding: 24px;
+  padding: 32px;
+  /* add more space from the fixed header/banner */
+  margin-top: 120px;
 }
 
 /* Keep form & list centered and constrained */
@@ -748,6 +759,12 @@ export default {
   font-size: 14px;
 }
 
+.full-width { width: 100%; }
+
+.form-row-split { display: flex; gap: 12px; }
+.split-half { flex: 1; }
+.add-button.full-width { width: 100%; justify-content: center; }
+
 .form-input.large {
   height: auto;
   min-height: 44px;
@@ -783,6 +800,7 @@ export default {
 
 .tasks-text-bold {
   font-weight: 800;
+  margin-bottom: 10px;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
@@ -793,12 +811,13 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 50px;
 }
 
 .task-item {
   padding: 16px;
   transition: all 0.3s ease;
-  margin-bottom: 5px;
+  margin-bottom: 50px;
 }
 
 .task-item.completed {
@@ -1045,9 +1064,9 @@ export default {
 /* Responsive Design */
 @media (max-width: 768px) {
   .task-form-container {
-    padding: 20px;
+    padding: 24px;
+    margin-top: 100px;
   }
-  
   .form-row {
     flex-direction: column;
     gap: 10px;
@@ -1055,14 +1074,17 @@ export default {
 
   .form-input,
   .form-select {
-    width: 70%;
-        padding-top: 16px;
-    align-content: center;
-    position: relative;
-    text-align: center;
-    margin-left: 50px;
-
+    width: 100%;
+    padding-top: 12px;
+    text-align: left;
+    margin-left: 0;
   }
+
+  .form-row-split {
+    flex-direction: row;
+  }
+
+  .split-half { width: 100%; }
 
   .task-list-container {
     padding: 0 10px;
@@ -1071,7 +1093,7 @@ export default {
 
 @media (max-width: 480px) {
   .task-form-container {
-    padding: 16px;
+    padding: 20px;
   }
   
   .task-item {

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-6">
+  <div class="min-h-screen flex items-center justify-center p-5">
     <div class="w-full max-w-md">
       <auth-register />
       <div class="mt-4 text-center text-sm text-gray-300">

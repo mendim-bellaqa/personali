@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-4">
+  <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-5">
     <UniversalBanner />
     <!-- Grid Animated Background -->
     <div class="absolute inset-0 z-0 bg-grid-pattern animate-gridMove"></div>

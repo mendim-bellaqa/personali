@@ -24,9 +24,9 @@
         </div>
       </nav>
 
-      <!-- Profile Section -->
+      <!-- Profile / Auth Section -->
       <div class="profile-section">
-        <div class="profile-dropdown">
+        <div v-if="isLoggedIn" class="profile-dropdown">
           <button @click="toggleProfileDropdown" class="profile-button">
             <div class="profile-avatar">
               <div class="avatar-circle">
@@ -46,6 +46,10 @@
             <button @click="signOut" class="dropdown-item text-red-400">Sign Out</button>
           </div>
         </div>
+        <div v-else class="auth-links flex items-center gap-3">
+          <router-link to="/login" class="banner-auth-btn">Login</router-link>
+          <router-link to="/register" class="banner-auth-btn">Register</router-link>
+        </div>
       </div>
     </div>
   </header>
@@ -53,11 +57,13 @@
 
 <script>
 import { auth } from '../services/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default {
   name: 'UniversalBanner',
   data() {
     return {
+      currentUser: null,
       showProfileDropdown: false,
       navItems: [
         { name: 'Collection', path: '/' },
@@ -69,24 +75,37 @@ export default {
       ]
     };
   },
+  created() {
+    // initialize reactive currentUser
+    this.currentUser = auth.currentUser || null;
+  },
+  mounted() {
+    // auth state listener to update template when user logs in/out
+    this._authUnsub = onAuthStateChanged(auth, (user) => {
+      this.currentUser = user;
+    });
+    // Close dropdown when clicking outside
+    document.addEventListener('click', this.handleClickOutside);
+  },
+  beforeUnmount() {
+    if (this._authUnsub) this._authUnsub();
+    document.removeEventListener('click', this.handleClickOutside);
+  },
   computed: {
     userName() {
-      return auth.currentUser?.displayName || 'User';
+      return this.currentUser?.displayName || 'User';
     },
     userInitial() {
-      return this.userName.charAt(0).toUpperCase();
+      return (this.currentUser?.displayName || this.currentUser?.email || 'U').charAt(0).toUpperCase();
+    },
+    isLoggedIn() {
+      return !!this.currentUser;
     },
     currentPath() {
       return this.$route.path;
     }
   },
-  mounted() {
-    // Close dropdown when clicking outside
-    document.addEventListener('click', this.handleClickOutside);
-  },
-  beforeUnmount() {
-    document.removeEventListener('click', this.handleClickOutside);
-  },
+  
   methods: {
     isActive(path) {
       if (path === '/') {
@@ -139,17 +158,18 @@ export default {
   justify-content: space-between;
   gap: 24px;
   border: none;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: 12px;
+  /* keep the header visually transparent with no background or shadow */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
   padding: 12px 18px;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
   /* no solid background - keep it transparent to avoid black overlay */
   background: transparent;
-  /* subtle outline instead of heavy box-shadow */
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  /* remove any box-shadow/outline so header is purely text/buttons */
+  box-shadow: none;
   pointer-events: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -204,17 +224,14 @@ export default {
 }
 
 .nav-item:hover {
+  /* only change text color on hover, no background or movement */
   color: white;
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
 }
 
 .nav-item.active {
   color: white;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  /* no background or border — use a subtle underline to indicate active state */
 }
-
 .nav-item.active::after {
   content: '';
   position: absolute;
@@ -241,18 +258,33 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  transition: color 0.15s ease;
   color: white;
   cursor: pointer;
 }
 
 .profile-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  /* only change color on hover */
+  color: #ffffff;
+}
+
+.banner-auth-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.banner-auth-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-1px);
 }
 
 .profile-avatar {

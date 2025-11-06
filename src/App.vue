@@ -7,7 +7,7 @@
     </div>
 
     <!-- Main Content with proper top padding for UniversalBanner -->
-    <main class="relative z-10 pt-16">
+    <main class="relative z-10 pt-20">
       <router-view @login="onLogin" />
     </main>
   </div>
@@ -110,7 +110,7 @@ export default {
 
 /* Adjust spacing for header and title */
 #app main {
-  padding-top: 16px; /* Reduce top padding */
+  padding-top: 20px; /* Ensure consistent top padding */
 }
 </style>
 

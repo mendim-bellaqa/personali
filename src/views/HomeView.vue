@@ -1,5 +1,6 @@
 <template>
   <div class="relative min-h-screen bg-black overflow-hidden">
+    <UniversalBanner />
     <!-- Animated Background Grid -->
     <div class="absolute inset-0 z-0">
       <div class="bg-grid-pattern animate-gridMove"></div>
@@ -7,11 +8,11 @@
     </div>
 
     <!-- Header Section -->
-    <header class="relative z-10 pt-12 pb-8 px-4 text-center">
-      <div class="container mx-auto">
+    <header class="relative z-10 pt-12 pb-8 px-5 text-center">
+      <div class="container mx-auto mt-16">
         <div class="animate-fade-in-up">
           <h1 class="font-serif text-5xl md:text-7xl font-bold text-white mb-4 tracking-wider">
-            <span class="bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r from-white mt-10 via-blue-100 to-purple-200 bg-clip-text text-transparent">
               PASS
             </span>
           </h1>
@@ -27,12 +28,12 @@
     </header>
 
     <!-- Main Card Carousel -->
-    <main class="relative z-10 px-4 pb-12">
+  <main class="relative z-10 px-5 pb-12 pt-24">
       <div class="container mx-auto">
-        <div 
+        <div
           ref="scrollContainer"
-          class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-x py-8"
-          :class="{ 'is-grabbing': isDragging }"
+          class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-y py-8 carousel-scroll"
+          :class="{ 'is-grabbing': isDragging, 'is-paused': isPaused }"
           @mousedown="startDrag"
           @mouseleave="stopDrag"
           @mouseup="stopDrag"
@@ -44,14 +45,14 @@
           <div class="snap-center shrink-0 w-16"></div>
           
           <div
-            v-for="(card, index) in cards"
-            :key="card.id"
+            v-for="(entry) in displayCards"
+            :key="entry.item.id + '-' + entry.rep"
             ref="cardElements"
             class="snap-center shrink-0 px-4"
           >
             <component 
-              :is="card.link ? 'router-link' : 'div'" 
-              :to="card.link" 
+              :is="entry.item.link ? 'router-link' : 'div'" 
+              :to="entry.item.link" 
               @click.native="handleCardClick"
               class="block group"
             >
@@ -59,8 +60,8 @@
                 <!-- Card Background with Advanced Effects -->
                 <div class="card-bg">
                   <img 
-                    :src="card.image" 
-                    :alt="card.title + ' background'"
+                    :src="entry.item.image" 
+                    :alt="entry.item.title + ' background'"
                     class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500"
                   />
                   <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 group-hover:from-white/20 group-hover:to-white/10 transition-all duration-500"></div>
@@ -72,28 +73,28 @@
                 </div>
                 
                 <!-- Card Content -->
-                <div class="relative z-20 p-8 h-80 flex flex-col justify-between">
+                <div :class="['relative z-20 p-6 h-72 flex flex-col justify-between', (entry.origIndex === activeIndex && entry.rep === middleRep && !isDragging) ? 'active-card-wrap' : '']">
                   <div>
                     <div class="flex items-center justify-between mb-4">
-                      <span class="card-number">{{ String(index + 1).padStart(2, '0') }}</span>
-                      <div class="card-status" :class="card.status">
+                      <span class="card-number">{{ String((entry.origIndex || 0) + 1).padStart(2, '0') }}</span>
+                      <div class="card-status" :class="entry.item.status">
                         <div class="w-2 h-2 rounded-full"></div>
                       </div>
                     </div>
                     
-                    <h2 class="font-serif text-4xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-200 group-hover:to-purple-300 group-hover:bg-clip-text transition-all duration-500">
-                      {{ card.title }}
+                    <h2 class="font-serif text-3xl font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-200 group-hover:to-purple-300 group-hover:bg-clip-text transition-all duration-500">
+                      {{ entry.item.title }}
                     </h2>
                     
-                    <p class="text-gray-300 text-lg font-light leading-relaxed mb-6">
-                      {{ card.description }}
+                    <p class="text-gray-300 text-base font-light leading-relaxed mb-4">
+                      {{ entry.item.description }}
                     </p>
                     
-                    <div class="flex flex-wrap gap-2 mb-6">
-                      <span 
-                        v-for="tag in card.tags" 
+                    <div class="flex flex-wrap gap-2 mb-4">
+                      <span
+                        v-for="tag in entry.item.tags"
                         :key="tag"
-                        class="px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-gray-300 border border-white/20 backdrop-blur-sm"
+                        class="px-2 py-1 text-xs font-medium rounded-full bg-white/10 text-gray-300 border border-white/20 backdrop-blur-sm"
                       >
                         {{ tag }}
                       </span>
@@ -103,10 +104,10 @@
                   <div class="card-action">
                     <div class="flex items-center justify-between">
                       <span class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
-                        {{ card.cta }}
+                        {{ entry.item.cta }}
                       </span>
                       <div class="card-arrow">
-                        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                       </div>
@@ -138,7 +139,7 @@
     </div>
 
     <!-- Footer -->
-    <footer class="relative z-10 text-center pb-8 px-4">
+    <footer class="relative z-10 text-center pb-8 px-5">
       <div class="container mx-auto">
         <div class="text-sm text-gray-500">
           <p>© 2025 PASS - Professional Productivity Suite</p>
@@ -149,8 +150,26 @@
 </template>
 
 <script>
+import UniversalBanner from '@/components/UniversalBanner.vue';
 export default {
   name: 'HomeView',
+  components: { UniversalBanner },
+  computed: {
+    displayCards() {
+      // repeat the cards repeatCount times and annotate with repetition index and original index
+      const out = [];
+      for (let rep = 0; rep < this.repeatCount; rep++) {
+        this.cards.forEach((c, i) => {
+          out.push({ item: c, rep, origIndex: i });
+        });
+      }
+      return out;
+    }
+    ,
+    middleRep() {
+      return Math.floor(this.repeatCount / 2);
+    }
+  },
   data() {
     return {
       cards: [
@@ -201,13 +220,20 @@ export default {
       ],
       activeIndex: 0,
       isDragging: false,
+      isPaused: false,
       startX: 0,
       startScrollLeft: 0,
       intersectionObserver: null,
-      autoplayInterval: null,
       startTouchX: 0,
+      startTouchY: 0,
       isTouchDragging: false,
       touchThreshold: 10,
+      currentDirection: 'right', // 'right', 'left', 'up', 'down'
+      velocity: { x: 0.5, y: 0 },
+  dragStartTime: 0,
+      // number of repetitions for seamless loop
+      repeatCount: 3,
+      animationFrame: null
     };
   },
   mounted() {
@@ -218,130 +244,158 @@ export default {
       }
       
       this.setupIntersectionObserver();
-      this.scrollToCard(0, 'auto');
-      this.startAutoplay();
-      // start a smooth continuous loop scrolling for desktop
-      this.startContinuousLoop();
+      this.setInitialLoopPosition();
+      this.startContinuousMovement();
     });
   },
   beforeDestroy() {
     if (this.intersectionObserver) {
       this.intersectionObserver.disconnect();
     }
-    this.stopAutoplay();
-    this.stopContinuousLoop();
+    this.stopContinuousMovement();
   },
   methods: {
-    startAutoplay() {
-      this.stopAutoplay();
-      this.autoplayInterval = setInterval(() => {
-        const nextIndex = (this.activeIndex + 1) % this.cards.length;
-        this.scrollToCard(nextIndex);
-      }, 5000);
-    },
-    stopAutoplay() {
-      if (this.autoplayInterval) {
-        clearInterval(this.autoplayInterval);
-        this.autoplayInterval = null;
-      }
-    },
-
-    startContinuousLoop() {
-      // only enable continuous loop on non-touch devices
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      if (isMobile) return;
-
+    startContinuousMovement() {
       const container = this.$refs.scrollContainer;
       if (!container) return;
-
-      let speed = 0.25; // px per frame
-      let rafId;
+      if (this.animationFrame) return; // already running
 
       const step = () => {
         if (!container) return;
-        container.scrollLeft += speed;
-        // loop
-        if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - 2)) {
-          container.scrollLeft = 0;
+
+        if (!this.isPaused) {
+          // Apply current velocity
+          container.scrollLeft += this.velocity.x;
+          container.scrollTop += this.velocity.y;
+
+          // Seamless loop handling for horizontal movement
+          const cardWidth = this.$refs.cardElements[0]?.offsetWidth + 32 || 296;
+          const blockWidth = cardWidth * this.cards.length;
+
+          if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - cardWidth)) {
+            container.scrollLeft -= blockWidth;
+          } else if (container.scrollLeft <= cardWidth) {
+            container.scrollLeft += blockWidth;
+          }
         }
-        rafId = requestAnimationFrame(step);
+
+        this.animationFrame = requestAnimationFrame(step);
       };
 
-      // start after small delay
-      setTimeout(() => {
-        rafId = requestAnimationFrame(step);
-      }, 1200);
-
-      // store on component to cancel later
-      this._continuousRaf = rafId;
-      this._continuousStep = step;
+      // Start movement loop (RAF continues even when paused)
+      this.animationFrame = requestAnimationFrame(step);
     },
 
-    stopContinuousLoop() {
-      if (this._continuousRaf) {
-        cancelAnimationFrame(this._continuousRaf);
-        this._continuousRaf = null;
+    stopContinuousMovement() {
+      if (this.animationFrame) {
+        cancelAnimationFrame(this.animationFrame);
+        this.animationFrame = null;
+      }
+    },
+
+    // Simplified pause/resume behavior: stop movement while dragging/touching
+    resumeMovement() {
+      this.isPaused = false;
+      if (!this.animationFrame) {
+        this.startContinuousMovement();
       }
     },
 
     startTouch(e) {
-      this.stopAutoplay();
-      const container = this.$refs.scrollContainer;
       this.isTouchDragging = true;
+      this.isPaused = true;
+      // Do not cancel RAF loop - it now stays running and respects isPaused
+      
+      const container = this.$refs.scrollContainer;
       this.startTouchX = e.touches[0].clientX - container.offsetLeft;
+      this.startTouchY = e.touches[0].clientY - container.offsetTop;
       this.startScrollLeft = container.scrollLeft;
+      this.startScrollTop = container.scrollTop;
+      this.dragStartTime = Date.now();
     },
 
     stopTouch(e) {
       this.isTouchDragging = false;
-      this.isDragging = false;
       
-      const moveDistance = Math.abs(e.changedTouches[0].clientX - this.startTouchX);
+      const moveDistance = Math.sqrt(
+        Math.pow(e.changedTouches[0].clientX - this.startTouchX, 2) +
+        Math.pow(e.changedTouches[0].clientY - this.startTouchY, 2)
+      );
+      
+      const dragDuration = Date.now() - this.dragStartTime;
+      const velocity = moveDistance / dragDuration;
+      
       if (moveDistance < this.touchThreshold) {
-        // It was a tap - let the default behavior happen
+        // It was a tap
+        this.resumeMovement();
       } else {
-        this.snapToNearest();
+        // Calculate swipe direction and set velocity
+        const deltaX = e.changedTouches[0].clientX - this.startTouchX;
+        const deltaY = e.changedTouches[0].clientY - this.startTouchY;
+        
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          // Horizontal swipe
+          this.currentDirection = deltaX > 0 ? 'right' : 'left';
+          this.velocity.x = deltaX > 0 ? Math.min(velocity * 2, 3) : Math.max(-velocity * 2, -3);
+          this.velocity.y = 0;
+        } else {
+          // Vertical swipe
+          this.currentDirection = deltaY > 0 ? 'down' : 'up';
+          this.velocity.y = deltaY > 0 ? Math.min(velocity * 2, 3) : Math.max(-velocity * 2, -3);
+          this.velocity.x = 0;
+        }
+        
+        // Resume movement with new direction after a short snap
+        setTimeout(() => {
+          // Snap to nearest logical card for better UX
+          this.scrollToCard(this.activeIndex, 'auto');
+          this.resumeMovement();
+        }, 120);
       }
     },
 
     onTouch(e) {
       if (!this.isTouchDragging) return;
       e.preventDefault();
+      
       const container = this.$refs.scrollContainer;
       const x = e.touches[0].clientX - container.offsetLeft;
-      const walk = (x - this.startTouchX) * 2;
-      container.scrollLeft = this.startScrollLeft - walk;
+      const y = e.touches[0].clientY - container.offsetTop;
+      const walkX = (x - this.startTouchX) * 1.5;
+      const walkY = (y - this.startTouchY) * 1.5;
+      
+      container.scrollLeft = this.startScrollLeft - walkX;
+      container.scrollTop = this.startScrollTop - walkY;
       this.isDragging = true;
     },
 
     startDrag(e) {
-      this.stopAutoplay();
-      const container = this.$refs.scrollContainer;
       this.isDragging = true;
+      this.isPaused = true;
+      
+      const container = this.$refs.scrollContainer;
       this.startX = e.pageX - container.offsetLeft;
       this.startScrollLeft = container.scrollLeft;
+      this.dragStartTime = Date.now();
+      
+      // (no hold detection) keep RAF running but paused
     },
 
     stopDrag() {
       this.isDragging = false;
-      this.snapToNearest();
+      // Snap to nearest and resume movement
+      this.scrollToCard(this.activeIndex, 'auto');
+      setTimeout(() => this.resumeMovement(), 300);
     },
 
     onDrag(e) {
       if (!this.isDragging) return;
       e.preventDefault();
+      
       const container = this.$refs.scrollContainer;
       const x = e.pageX - container.offsetLeft;
-      const walk = (x - this.startX) * 2; 
+      const walk = (x - this.startX) * 1.5;
       container.scrollLeft = this.startScrollLeft - walk;
-    },
-
-    snapToNearest() {
-      const container = this.$refs.scrollContainer;
-      const scrollLeft = container.scrollLeft;
-      const cardWidth = this.$refs.cardElements[0]?.offsetWidth + 32 || 296;
-      const index = Math.round(scrollLeft / cardWidth);
-      this.scrollToCard(index, 'smooth');
     },
 
     setupIntersectionObserver() {
@@ -356,9 +410,11 @@ export default {
           if (entry.isIntersecting) {
             const cardElements = this.$refs.cardElements;
             const cardIndex = cardElements.findIndex(cardRef => cardRef === entry.target);
-            if (cardIndex !== -1 && cardIndex !== this.activeIndex) {
-              this.activeIndex = cardIndex;
-              setTimeout(() => this.startAutoplay(), 3000);
+            if (cardIndex !== -1) {
+              const logical = ((cardIndex % this.cards.length) + this.cards.length) % this.cards.length;
+              if (logical !== this.activeIndex) {
+                this.activeIndex = logical;
+              }
             }
           }
         });
@@ -374,20 +430,30 @@ export default {
     },
 
     scrollToCard(index, behavior = 'smooth') {
-      this.stopAutoplay();
+      const container = this.$refs.scrollContainer;
       const cardElements = this.$refs.cardElements;
+      if (!cardElements || cardElements.length === 0) return;
       
-      if (cardElements && cardElements[index]) {
-        const container = this.$refs.scrollContainer;
-        const card = cardElements[index];
+      const midBlock = Math.floor(this.repeatCount / 2) * this.cards.length;
+      const targetIndex = midBlock + (index % this.cards.length + this.cards.length) % this.cards.length;
+      const card = cardElements[targetIndex];
+      if (card) {
         const cardCenter = card.offsetLeft + (card.offsetWidth / 2);
         const containerCenter = container.offsetWidth / 2;
         const scrollLeft = cardCenter - containerCenter;
-        
-        container.scrollTo({
-          left: scrollLeft,
-          behavior: behavior === 'auto' ? 'auto' : 'smooth'
-        });
+        container.scrollTo({ left: scrollLeft, behavior: behavior === 'auto' ? 'auto' : 'smooth' });
+      }
+    },
+
+    setInitialLoopPosition() {
+      const container = this.$refs.scrollContainer;
+      const cardElements = this.$refs.cardElements;
+      if (!container || !cardElements || cardElements.length === 0) return;
+      const midBlock = Math.floor(this.repeatCount / 2) * this.cards.length;
+      const firstMidCard = cardElements[midBlock];
+      if (firstMidCard) {
+        const scrollLeft = firstMidCard.offsetLeft - (container.offsetWidth / 2) + (firstMidCard.offsetWidth / 2);
+        container.scrollLeft = scrollLeft;
       }
     },
 
@@ -445,8 +511,8 @@ body {
 /* Card Container */
 .card-container {
   position: relative;
-  width: 20rem;
-  height: 24rem;
+  width: 18rem;
+  height: 22rem;
   border-radius: 1.5rem;
   overflow: hidden;
   cursor: pointer;
@@ -454,8 +520,17 @@ body {
 }
 
 .card-container:hover {
-  transform: scale(1.05) translateY(-0.5rem);
+  transform: scale(1.03) translateY(-0.3rem);
 }
+
+/* Active centered card styling for smoother in/out motion */
+.active-card-wrap {
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms ease;
+  transform: translateY(-8px) scale(1.04);
+  z-index: 40;
+}
+
+.card-container { transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1); }
 
 /* Card Background */
 .card-bg {
@@ -586,14 +661,20 @@ body {
   scrollbar-width: none; 
 }
 
+.carousel-scroll { scroll-behavior: smooth; }
+
 /* Cursor */
 .cursor-grab { 
   cursor: grab; 
   cursor: -webkit-grab; 
 }
-.is-grabbing { 
-  cursor: grabbing; 
-  cursor: -webkit-grabbing; 
+.is-grabbing {
+  cursor: grabbing;
+  cursor: -webkit-grabbing;
+}
+
+.is-paused {
+  cursor: default;
 }
 
 /* Touch Support */
@@ -603,8 +684,8 @@ body {
   min-height: 44px;
 }
 
-.touch-pan-x {
-  touch-action: pan-x;
+.touch-pan-y {
+  touch-action: pan-y;
 }
 
 /* Typography */
@@ -615,12 +696,12 @@ body {
 /* Mobile Optimizations */
 @media (max-width: 640px) {
   .card-container {
-    width: 18rem;
-    height: 25rem;
+    width: 16rem;
+    height: 20rem;
   }
   
   .card-container:hover {
-    transform: scale(1);
+    transform: scale(1.02);
   }
   
   .bg-grid-pattern {

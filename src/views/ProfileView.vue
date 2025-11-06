@@ -1,11 +1,11 @@
 <template>
-  <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-4 text-white">
+  <div class="relative min-h-screen bg-black overflow-hidden flex items-center justify-center p-5 text-white">
     <UniversalBanner />
 
     <main class="relative z-10 w-full mx-auto h-screen flex items-center justify-center">
-      <div class="liquid-glass-card p-8 profile-card">
-        <h2 class="text-2xl font-bold mb-2 text-center">Profile Settings</h2>
-        <p class="text-gray-300 mb-6 text-center">Edit your public profile information.</p>
+      <div class="liquid-glass-card p-10 profile-card">
+        <h2 class="text-2xl font-bold mb-3 text-center">Profile Settings</h2>
+        <p class="text-gray-300 mb-8 text-center">Edit your public profile information.</p>
 
         <div class="flex flex-col items-center gap-6">
           <div>
