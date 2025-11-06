@@ -139,23 +139,19 @@ export default {
   justify-content: space-between;
   gap: 24px;
   border: none;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border-radius: 12px;
   padding: 12px 18px;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  box-shadow:
-    0 6px 30px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  /* no solid background - keep it transparent to avoid black overlay */
+  background: transparent;
+  /* subtle outline instead of heavy box-shadow */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
   pointer-events: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Keep banner background subtle and don't change on hover */
-.banner-container {
-  background: rgba(255, 255, 255, 0.03);
 }
 
 /* Logo Section */

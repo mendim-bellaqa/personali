@@ -4,13 +4,13 @@
     
     <form @submit.prevent="login" class="space-y-4">
       <div>
-        <label class="block text-sm text-gray-300">Email</label>
+        <label class="block text-sm text-gray-300">Email or username</label>
         <input 
-          v-model="email" 
-          type="email"
+          v-model="identifier" 
+          type="text"
           required
           class="w-full p-3 rounded-lg bg-black/20 text-white border border-white/20 focus:border-blue-400 focus:outline-none transition-colors"
-          placeholder="your@email.com"
+          placeholder="email@example.com or username"
         />
       </div>
 
@@ -74,13 +74,14 @@
 
 <script>
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../services/firebase';
+import { auth, db } from '../../services/firebase';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default {
   name: 'AuthLogin',
   data() {
     return {
-      email: '',
+      identifier: '', // email or username
       password: '',
       loading: false,
       message: '',
@@ -90,59 +91,100 @@ export default {
   methods: {
     async login() {
       // Basic validation
-      if (!this.email || !this.password) {
-        this.showMessage('Please enter both email and password', 'error');
-        return;
-      }
-
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(this.email)) {
-        this.showMessage('Please enter a valid email address', 'error');
+      if (!this.identifier || !this.password) {
+        this.showMessage('Please enter both email/username and password', 'error');
         return;
       }
 
       this.loading = true;
       this.message = '';
 
+      // detect email vs username
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      let emailToUse = null;
+
       try {
-        console.log('Attempting to sign in...');
-        
-        const userCredential = await signInWithEmailAndPassword(auth, this.email.trim(), this.password);
+        if (emailRegex.test(this.identifier.trim())) {
+          // user entered an email
+          emailToUse = this.identifier.trim();
+        } else {
+          // treat as username — lookup in users collection
+          const q = query(collection(db, 'users'), where('displayName', '==', this.identifier.trim()));
+          const snap = await getDocs(q);
+          if (snap.empty) {
+            this.showMessage('Username not found. Please create an account.', 'error');
+            this.loading = false;
+            return;
+          }
+          // pick first matching user (if duplicates exist)
+          const userDoc = snap.docs[0];
+          const data = userDoc.data();
+          if (!data.email) {
+            this.showMessage('User record has no email. Please contact support.', 'error');
+            this.loading = false;
+            return;
+          }
+          emailToUse = data.email;
+        }
+
+        console.log('Attempting to sign in with email:', emailToUse);
+        const userCredential = await signInWithEmailAndPassword(auth, emailToUse, this.password);
         console.log('Login successful:', userCredential.user.uid);
 
+        // Ensure a users/{uid} doc exists (useful if accounts were created before client-side writes were added)
+        try {
+          const uref = doc(db, 'users', userCredential.user.uid);
+          const ud = await getDoc(uref);
+          if (!ud.exists()) {
+            await setDoc(uref, {
+              uid: userCredential.user.uid,
+              email: userCredential.user.email,
+              displayName: userCredential.user.displayName || '',
+              provider: 'password',
+              createdAt: serverTimestamp(),
+              emailVerified: userCredential.user.emailVerified || false
+            }, { merge: true });
+            console.log('Created users/{uid} document for', userCredential.user.uid);
+          }
+        } catch (e) {
+          console.warn('Failed to ensure users doc exists:', e);
+        }
+
         this.showMessage('Successfully signed in!', 'success');
-        
         // Wait a moment then emit login event
         setTimeout(() => {
           this.$emit('login', userCredential.user);
-        }, 1000);
+        }, 800);
 
       } catch (error) {
         console.error('Login error:', error);
-        
         let errorMessage = 'Login failed';
-        
-        switch (error.code) {
-          case 'auth/user-not-found':
-            errorMessage = 'No account found with this email. Please check your email or sign up.';
-            break;
-          case 'auth/wrong-password':
-            errorMessage = 'Incorrect password. Please try again.';
-            break;
-          case 'auth/email-not-verified':
-            errorMessage = 'Please verify your email address before signing in.';
-            break;
-          case 'auth/too-many-requests':
-            errorMessage = 'Too many failed attempts. Please try again later.';
-            break;
-          case 'auth/invalid-email':
-            errorMessage = 'Invalid email address.';
-            break;
-          case 'auth/user-disabled':
-            errorMessage = 'This account has been disabled.';
-            break;
-          default:
-            errorMessage = error.message;
+        // If the error is from Firebase Auth, map known codes
+        if (error && error.code) {
+          switch (error.code) {
+            case 'auth/user-not-found':
+              errorMessage = 'No account found with this email. Please check the email or sign up.';
+              break;
+            case 'auth/wrong-password':
+              errorMessage = 'Incorrect password. Please try again.';
+              break;
+            case 'auth/email-not-verified':
+              errorMessage = 'Please verify your email address before signing in.';
+              break;
+            case 'auth/too-many-requests':
+              errorMessage = 'Too many failed attempts. Please try again later.';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'Invalid email address.';
+              break;
+            case 'auth/user-disabled':
+              errorMessage = 'This account has been disabled.';
+              break;
+            default:
+              errorMessage = error.message || String(error);
+          }
+        } else {
+          errorMessage = error.message || String(error);
         }
 
         this.showMessage(errorMessage, 'error');
@@ -159,6 +201,25 @@ export default {
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
         console.log('Google login successful:', result.user.uid);
+
+        // Ensure users/{uid} exists for Google sign-ins too
+        try {
+          const uref = doc(db, 'users', result.user.uid);
+          const ud = await getDoc(uref);
+          if (!ud.exists()) {
+            await setDoc(uref, {
+              uid: result.user.uid,
+              email: result.user.email,
+              displayName: result.user.displayName || '',
+              provider: 'google',
+              createdAt: serverTimestamp(),
+              emailVerified: result.user.emailVerified || false
+            }, { merge: true });
+            console.log('Created users/{uid} document for Google user', result.user.uid);
+          }
+        } catch (e) {
+          console.warn('Failed to ensure users doc exists for Google user:', e);
+        }
 
         this.showMessage('Successfully signed in with Google!', 'success');
         

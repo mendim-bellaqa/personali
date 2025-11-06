@@ -72,7 +72,7 @@
                 </div>
                 
                 <!-- Card Content -->
-                <div class="relative z-20 p- h-80 flex flex-col justify-between">
+                <div class="relative z-20 p-8 h-80 flex flex-col justify-between">
                   <div>
                     <div class="flex items-center justify-between mb-4">
                       <span class="card-number">{{ String(index + 1).padStart(2, '0') }}</span>

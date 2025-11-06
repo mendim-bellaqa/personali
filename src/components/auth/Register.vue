@@ -92,7 +92,8 @@
 
 <script>
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '../../services/firebase';
+import { auth, db } from '../../services/firebase';
+import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 export default {
   name: 'AuthRegister',
@@ -159,6 +160,16 @@ export default {
         this.password = '';
         this.passwordConfirm = '';
 
+        // Create a users/{uid} document in Firestore. Do NOT store passwords here — Firebase Auth manages credentials securely.
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: this.username,
+          provider: 'password',
+          createdAt: serverTimestamp(),
+          emailVerified: userCredential.user.emailVerified || false
+        }, { merge: true });
+
         // Sign out the user for email verification flow to avoid navigation conflicts
         await auth.signOut();
         console.log('User signed out for email verification');
@@ -211,8 +222,18 @@ export default {
         const result = await signInWithPopup(auth, provider);
         console.log('Google registration successful:', result.user.uid);
 
-        // Ensure user is authenticated and redirect
+        // Ensure user is authenticated, create users/{uid} doc, and redirect
         if (result.user) {
+          // Create or merge a users/{uid} doc for Google sign-ins
+          await setDoc(doc(db, 'users', result.user.uid), {
+            uid: result.user.uid,
+            email: result.user.email,
+            displayName: result.user.displayName || '',
+            provider: 'google',
+            createdAt: serverTimestamp(),
+            emailVerified: result.user.emailVerified || false
+          }, { merge: true });
+
           this.$emit('login', result.user);
           this.$router.push('/');
         } else {
