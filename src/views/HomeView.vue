@@ -46,8 +46,9 @@
           
           <div
             v-for="(entry) in displayCards"
-            :key="entry.item.id + '-' + entry.rep"
+            :key="entry.item.id + '-' + entry.origIndex"
             ref="cardElements"
+            :data-orig-index="entry.origIndex"
             class="snap-center shrink-0 px-4"
           >
             <component 
@@ -73,7 +74,7 @@
                 </div>
                 
                 <!-- Card Content -->
-                <div :class="['relative z-20 p-6 h-72 flex flex-col justify-between', (entry.origIndex === activeIndex && entry.rep === middleRep && !isDragging) ? 'active-card-wrap' : '']">
+                <div :class="['relative z-20 p-6 h-72 flex flex-col justify-between', (entry.origIndex === activeIndex && !isDragging) ? 'active-card-wrap' : '']">
                   <div>
                     <div class="flex items-center justify-between mb-4">
                       <span class="card-number">{{ String((entry.origIndex || 0) + 1).padStart(2, '0') }}</span>
@@ -156,19 +157,10 @@ export default {
   components: { UniversalBanner },
   computed: {
     displayCards() {
-      // repeat the cards repeatCount times and annotate with repetition index and original index
-      const out = [];
-      for (let rep = 0; rep < this.repeatCount; rep++) {
-        this.cards.forEach((c, i) => {
-          out.push({ item: c, rep, origIndex: i });
-        });
-      }
-      return out;
+      // render cards once (no autoplay loop). Each entry exposes the original index.
+      return this.cards.map((c, i) => ({ item: c, origIndex: i }));
     }
-    ,
-    middleRep() {
-      return Math.floor(this.repeatCount / 2);
-    }
+    
   },
   data() {
     return {
@@ -229,11 +221,7 @@ export default {
       isTouchDragging: false,
       touchThreshold: 10,
       currentDirection: 'right', // 'right', 'left', 'up', 'down'
-      velocity: { x: 0.5, y: 0 },
-  dragStartTime: 0,
-      // number of repetitions for seamless loop
-      repeatCount: 3,
-      animationFrame: null
+      dragStartTime: 0
     };
   },
   mounted() {
@@ -244,61 +232,35 @@ export default {
       }
       
       this.setupIntersectionObserver();
-      this.setInitialLoopPosition();
-      this.startContinuousMovement();
+      // show first card by default
+      this.$nextTick(() => this.scrollToCard(0, 'auto'));
     });
   },
   beforeDestroy() {
     if (this.intersectionObserver) {
       this.intersectionObserver.disconnect();
     }
-    this.stopContinuousMovement();
+    // no RAF to stop anymore
   },
   methods: {
-    startContinuousMovement() {
+    // compute nearest card index based on container center
+    computeNearestCard() {
       const container = this.$refs.scrollContainer;
-      if (!container) return;
-      if (this.animationFrame) return; // already running
+      const cardElements = this.$refs.cardElements || [];
+      if (!container || !cardElements || cardElements.length === 0) return 0;
 
-      const step = () => {
-        if (!container) return;
-
-        if (!this.isPaused) {
-          // Apply current velocity
-          container.scrollLeft += this.velocity.x;
-          container.scrollTop += this.velocity.y;
-
-          // Seamless loop handling for horizontal movement
-          const cardWidth = this.$refs.cardElements[0]?.offsetWidth + 32 || 296;
-          const blockWidth = cardWidth * this.cards.length;
-
-          if (container.scrollLeft >= (container.scrollWidth - container.clientWidth - cardWidth)) {
-            container.scrollLeft -= blockWidth;
-          } else if (container.scrollLeft <= cardWidth) {
-            container.scrollLeft += blockWidth;
-          }
+      const containerCenter = container.scrollLeft + (container.offsetWidth / 2);
+      let best = 0;
+      let bestDist = Infinity;
+      cardElements.forEach((card, idx) => {
+        const cardCenter = card.offsetLeft + (card.offsetWidth / 2);
+        const d = Math.abs(cardCenter - containerCenter);
+        if (d < bestDist) {
+          bestDist = d;
+          best = idx;
         }
-
-        this.animationFrame = requestAnimationFrame(step);
-      };
-
-      // Start movement loop (RAF continues even when paused)
-      this.animationFrame = requestAnimationFrame(step);
-    },
-
-    stopContinuousMovement() {
-      if (this.animationFrame) {
-        cancelAnimationFrame(this.animationFrame);
-        this.animationFrame = null;
-      }
-    },
-
-    // Simplified pause/resume behavior: stop movement while dragging/touching
-    resumeMovement() {
-      this.isPaused = false;
-      if (!this.animationFrame) {
-        this.startContinuousMovement();
-      }
+      });
+      return best;
     },
 
     startTouch(e) {
@@ -316,41 +278,19 @@ export default {
 
     stopTouch(e) {
       this.isTouchDragging = false;
-      
       const moveDistance = Math.sqrt(
         Math.pow(e.changedTouches[0].clientX - this.startTouchX, 2) +
         Math.pow(e.changedTouches[0].clientY - this.startTouchY, 2)
       );
-      
-      const dragDuration = Date.now() - this.dragStartTime;
-      const velocity = moveDistance / dragDuration;
-      
+
       if (moveDistance < this.touchThreshold) {
-        // It was a tap
-        this.resumeMovement();
+        // It was a tap - snap to nearest just in case
+        const nearest = this.computeNearestCard();
+        this.scrollToCard(nearest, 'auto');
       } else {
-        // Calculate swipe direction and set velocity
-        const deltaX = e.changedTouches[0].clientX - this.startTouchX;
-        const deltaY = e.changedTouches[0].clientY - this.startTouchY;
-        
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-          // Horizontal swipe
-          this.currentDirection = deltaX > 0 ? 'right' : 'left';
-          this.velocity.x = deltaX > 0 ? Math.min(velocity * 2, 3) : Math.max(-velocity * 2, -3);
-          this.velocity.y = 0;
-        } else {
-          // Vertical swipe
-          this.currentDirection = deltaY > 0 ? 'down' : 'up';
-          this.velocity.y = deltaY > 0 ? Math.min(velocity * 2, 3) : Math.max(-velocity * 2, -3);
-          this.velocity.x = 0;
-        }
-        
-        // Resume movement with new direction after a short snap
-        setTimeout(() => {
-          // Snap to nearest logical card for better UX
-          this.scrollToCard(this.activeIndex, 'auto');
-          this.resumeMovement();
-        }, 120);
+        // Snap to the nearest card after swipe
+        const nearest = this.computeNearestCard();
+        this.scrollToCard(nearest, 'auto');
       }
     },
 
@@ -383,9 +323,9 @@ export default {
 
     stopDrag() {
       this.isDragging = false;
-      // Snap to nearest and resume movement
-      this.scrollToCard(this.activeIndex, 'auto');
-      setTimeout(() => this.resumeMovement(), 300);
+      // Snap to nearest card after drag
+      const nearest = this.computeNearestCard();
+      this.scrollToCard(nearest, 'auto');
     },
 
     onDrag(e) {
@@ -433,29 +373,18 @@ export default {
       const container = this.$refs.scrollContainer;
       const cardElements = this.$refs.cardElements;
       if (!cardElements || cardElements.length === 0) return;
-      
-      const midBlock = Math.floor(this.repeatCount / 2) * this.cards.length;
-      const targetIndex = midBlock + (index % this.cards.length + this.cards.length) % this.cards.length;
+      const targetIndex = Math.max(0, Math.min(index, cardElements.length - 1));
       const card = cardElements[targetIndex];
       if (card) {
         const cardCenter = card.offsetLeft + (card.offsetWidth / 2);
         const containerCenter = container.offsetWidth / 2;
         const scrollLeft = cardCenter - containerCenter;
         container.scrollTo({ left: scrollLeft, behavior: behavior === 'auto' ? 'auto' : 'smooth' });
+        this.activeIndex = card?.dataset?.origIndex !== undefined ? Number(card.dataset.origIndex) : targetIndex;
       }
     },
 
-    setInitialLoopPosition() {
-      const container = this.$refs.scrollContainer;
-      const cardElements = this.$refs.cardElements;
-      if (!container || !cardElements || cardElements.length === 0) return;
-      const midBlock = Math.floor(this.repeatCount / 2) * this.cards.length;
-      const firstMidCard = cardElements[midBlock];
-      if (firstMidCard) {
-        const scrollLeft = firstMidCard.offsetLeft - (container.offsetWidth / 2) + (firstMidCard.offsetWidth / 2);
-        container.scrollLeft = scrollLeft;
-      }
-    },
+    
 
     handleCardClick(e) {
       if (this.isDragging || this.isTouchDragging) {

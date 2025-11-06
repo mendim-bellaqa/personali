@@ -217,6 +217,15 @@
       </div>
     </div>
 
+    <!-- Confirm Delete Modal -->
+    <ConfirmModal
+      v-if="showDeleteConfirm"
+      title="Delete task?"
+      message="Are you sure you want to permanently delete this task? This action cannot be undone."
+      @confirm="performDelete"
+      @cancel="cancelDelete"
+    />
+
     <!-- Footer Section -->
     <footer class="footer footer-fixed" role="contentinfo">
       <button @click="sendMarkedToArchive" class="footer-btn">DONE</button>
@@ -240,11 +249,13 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 import UniversalBanner from '../components/UniversalBanner.vue';
+import ConfirmModal from '../components/ConfirmModal.vue';
 
 export default {
   name: 'TskView',
   components: {
     UniversalBanner
+    , ConfirmModal
   },
   data() {
     return {
@@ -258,6 +269,8 @@ export default {
         description: '',
         deadline: ''
       }
+      , showDeleteConfirm: false,
+      pendingDeleteId: null
     };
   },
   mounted() {
@@ -332,12 +345,29 @@ export default {
       }
     },
 
-    async deleteTask(taskId) {
+    // show confirm modal first, then delete on confirm
+    deleteTask(taskId) {
+      this.pendingDeleteId = taskId;
+      this.showDeleteConfirm = true;
+    },
+
+    async performDelete() {
+      const taskId = this.pendingDeleteId;
+      this.showDeleteConfirm = false;
+      this.pendingDeleteId = null;
+      if (!taskId) return;
+
       try {
         await deleteDoc(doc(db, 'tasks', taskId));
       } catch (error) {
         console.error('Error deleting task:', error);
+        alert('Failed to delete task. See console for details.');
       }
+    },
+
+    cancelDelete() {
+      this.pendingDeleteId = null;
+      this.showDeleteConfirm = false;
     },
 
     editTask(task) {
@@ -1084,7 +1114,8 @@ export default {
     flex-direction: row;
   }
 
-  .split-half { width: 100%; }
+  /* On small screens keep the two fields side-by-side at 50% each */
+  .split-half { width: 50%; box-sizing: border-box; }
 
   .task-list-container {
     padding: 0 10px;

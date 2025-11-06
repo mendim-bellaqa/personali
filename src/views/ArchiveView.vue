@@ -147,12 +147,20 @@
           </div>
         </div>
       </footer>
+      <ConfirmModal
+        v-if="showDeleteConfirm"
+        title="Delete archived task?"
+        message="Are you sure you want to permanently delete this archived task? This cannot be undone."
+        @confirm="performPermanentDelete"
+        @cancel="cancelPermanentDelete"
+      />
     </div>
   </div>
 </template>
 
 <script>
 import UniversalBanner from '@/components/UniversalBanner.vue';
+import ConfirmModal from '@/components/ConfirmModal.vue';
 import {
   collection,
   updateDoc,
@@ -168,7 +176,7 @@ import {
 import { auth, db } from '../services/firebase';
 
 export default {
-  components: { UniversalBanner },
+  components: { UniversalBanner, ConfirmModal },
   name: 'ArchiveView',
   data() {
     return {
@@ -181,7 +189,9 @@ export default {
         { id: 4, class: 'orb-d', size: 250, top: 60, left: 15, delay: 15, duration: 22 }
       ],
       animationFrame: null,
-      containerBounds: { width: 0, height: 0 }
+      containerBounds: { width: 0, height: 0 },
+      showDeleteConfirm: false,
+      pendingDeleteId: null
     };
   },
   mounted() {
@@ -347,17 +357,29 @@ export default {
     async permanentDeleteTask(taskId) {
       if (!auth.currentUser) return;
 
-      if (!confirm('Are you sure you want to permanently delete this task? This action cannot be undone.')) {
-        return;
-      }
+      // show confirmation modal first
+      this.pendingDeleteId = taskId;
+      this.showDeleteConfirm = true;
+    },
+
+    async performPermanentDelete() {
+      const id = this.pendingDeleteId;
+      this.showDeleteConfirm = false;
+      this.pendingDeleteId = null;
+      if (!id) return;
 
       try {
-        await deleteDoc(doc(db, 'tasks', taskId));
+        await deleteDoc(doc(db, 'tasks', id));
         console.log('Task permanently deleted');
       } catch (error) {
         console.error('Error deleting task:', error);
         alert('Failed to delete task. Please try again.');
       }
+    },
+
+    cancelPermanentDelete() {
+      this.pendingDeleteId = null;
+      this.showDeleteConfirm = false;
     },
 
     async restoreAllTasks() {

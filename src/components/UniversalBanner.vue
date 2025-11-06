@@ -449,8 +449,5 @@ export default {
   }
 }
 
-/* Hide banner on auth pages */
-.auth-page .universal-banner {
-  display: none;
-}
+/* Previously hid banner on auth pages; keep banner visible on all pages so header appears on mobile and desktop */
 </style>
