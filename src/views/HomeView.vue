@@ -40,6 +40,7 @@
           @mousemove="onDrag"
           @touchstart="startTouch"
           @touchend="stopTouch"
+          @touchcancel="stopTouch"
           @touchmove="onTouch"
         >
           <div class="snap-center shrink-0 w-16"></div>
@@ -266,46 +267,62 @@ export default {
     startTouch(e) {
       this.isTouchDragging = true;
       this.isPaused = true;
-      // Do not cancel RAF loop - it now stays running and respects isPaused
-      
       const container = this.$refs.scrollContainer;
-      this.startTouchX = e.touches[0].clientX - container.offsetLeft;
-      this.startTouchY = e.touches[0].clientY - container.offsetTop;
+      // store both raw clientX (for swipe direction) and offset-based start for dragging
+      this.startTouchXRaw = e.touches[0].clientX;
+      this.startTouchX = e.touches[0].clientX - container.getBoundingClientRect().left;
+      this.startTouchY = e.touches[0].clientY - container.getBoundingClientRect().top;
       this.startScrollLeft = container.scrollLeft;
       this.startScrollTop = container.scrollTop;
       this.dragStartTime = Date.now();
     },
 
     stopTouch(e) {
+      // handle end of touch - decide swipe direction vs tap
       this.isTouchDragging = false;
-      const moveDistance = Math.sqrt(
-        Math.pow(e.changedTouches[0].clientX - this.startTouchX, 2) +
-        Math.pow(e.changedTouches[0].clientY - this.startTouchY, 2)
-      );
+      const endX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : this.startTouchXRaw;
+      const endY = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : this.startTouchY;
+      const dx = endX - (this.startTouchXRaw || 0);
+      const dy = endY - (this.startTouchY || 0);
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
 
-      if (moveDistance < this.touchThreshold) {
-        // It was a tap - snap to nearest just in case
-        const nearest = this.computeNearestCard();
-        this.scrollToCard(nearest, 'auto');
+      // If horizontal swipe dominates and passes threshold, go to next/prev card
+      const SWIPE_THRESHOLD = 40; // px
+      if (absDx > SWIPE_THRESHOLD && absDx > absDy) {
+        if (dx < 0) {
+          // swipe left -> next
+          this.scrollToCard(this.activeIndex + 1, 'auto');
+        } else {
+          // swipe right -> previous
+          this.scrollToCard(this.activeIndex - 1, 'auto');
+        }
       } else {
-        // Snap to the nearest card after swipe
+        // not a decisive swipe — snap to nearest
         const nearest = this.computeNearestCard();
         this.scrollToCard(nearest, 'auto');
       }
+      this.isDragging = false;
     },
 
     onTouch(e) {
       if (!this.isTouchDragging) return;
-      e.preventDefault();
-      
+      // allow vertical page scroll if user is scrolling mostly vertically
       const container = this.$refs.scrollContainer;
-      const x = e.touches[0].clientX - container.offsetLeft;
-      const y = e.touches[0].clientY - container.offsetTop;
+      const x = e.touches[0].clientX - container.getBoundingClientRect().left;
+      const y = e.touches[0].clientY - container.getBoundingClientRect().top;
+      const dx = Math.abs(x - (this.startTouchX || 0));
+      const dy = Math.abs(y - (this.startTouchY || 0));
+
+      // If vertical movement is larger, let browser handle it by not preventing default
+      if (dy > dx && dy > 8) {
+        // allow page vertical scroll
+        return;
+      }
+
+      e.preventDefault();
       const walkX = (x - this.startTouchX) * 1.5;
-      const walkY = (y - this.startTouchY) * 1.5;
-      
       container.scrollLeft = this.startScrollLeft - walkX;
-      container.scrollTop = this.startScrollTop - walkY;
       this.isDragging = true;
     },
 

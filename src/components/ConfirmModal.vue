@@ -1,7 +1,7 @@
 <template>
-  <div class="fixed inset-0 z-60 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-    <div class="absolute inset-0 bg-black/60" @click="$emit('cancel')"></div>
-    <div class="relative bg-white/5 backdrop-blur-md rounded-lg max-w-md w-full p-4 text-white shadow-lg">
+  <div class="fixed inset-0 flex items-center justify-center p-4" role="dialog" aria-modal="true" style="z-index: 99999;">
+    <div class="absolute inset-0 bg-black/60" @click="$emit('cancel')" style="z-index: 99990;"></div>
+    <div class="relative bg-white/5 backdrop-blur-md rounded-lg max-w-md w-full p-4 text-white shadow-lg" style="z-index: 99999;">
       <h3 class="text-lg font-semibold mb-2">{{ title || 'Confirm' }}</h3>
       <p class="text-sm text-gray-200 mb-4">{{ message || 'Are you sure?' }}</p>
       <div class="flex justify-end gap-3">

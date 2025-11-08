@@ -791,8 +791,8 @@ export default {
 
 .full-width { width: 100%; }
 
-.form-row-split { display: flex; gap: 12px; }
-.split-half { flex: 1; }
+.form-row-split { display: flex; gap: 12px; align-items: flex-end; }
+.split-half { width: 50%; box-sizing: border-box; }
 .add-button.full-width { width: 100%; justify-content: center; }
 
 .form-input.large {
@@ -1068,8 +1068,13 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   bottom: 18px;
-  z-index: 60;
-  background: transparent; /* keep app styling */
+  z-index: 1200;
+  background: rgba(0,0,0,0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 10px 14px;
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
 }
 
 .footer-btn {
@@ -1094,7 +1099,7 @@ export default {
 /* Responsive Design */
 @media (max-width: 768px) {
   .task-form-container {
-    padding: 24px;
+    padding: 20px;
     margin-top: 100px;
   }
   .form-row {
@@ -1110,12 +1115,9 @@ export default {
     margin-left: 0;
   }
 
-  .form-row-split {
-    flex-direction: row;
-  }
-
-  /* On small screens keep the two fields side-by-side at 50% each */
-  .split-half { width: 50%; box-sizing: border-box; }
+  /* On small screens stack the split row vertically for better usability */
+  .form-row-split { flex-direction: column; }
+  .split-half { width: 100%; box-sizing: border-box; }
 
   .task-list-container {
     padding: 0 10px;

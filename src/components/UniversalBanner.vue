@@ -144,12 +144,12 @@ export default {
 <style scoped>
 .universal-banner {
   position: fixed;
-  top: 20px;
+  top: 12px;
   left: 0;
   right: 0;
   z-index: 1000;
   padding: 0 20px;
-  pointer-events: none;
+  pointer-events: auto; /* allow interaction */
 }
 
 .banner-container {
@@ -158,16 +158,16 @@ export default {
   justify-content: space-between;
   gap: 24px;
   border: none;
-  /* keep the header visually transparent with no background or shadow */
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border-radius: 0;
+  /* dark blurred background as requested */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
   padding: 12px 18px;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  /* no solid background - keep it transparent to avoid black overlay */
-  background: transparent;
+  /* dark semi-opaque background (90% black) */
+  background: rgba(0,0,0,0.9);
   /* remove any box-shadow/outline so header is purely text/buttons */
   box-shadow: none;
   pointer-events: auto;
