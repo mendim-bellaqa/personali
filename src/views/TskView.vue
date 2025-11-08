@@ -53,7 +53,7 @@
 
           <!-- Plan and Deadline on one row -->
           <div class="form-row form-row-split">
-            <div class="split-half">
+            <div class="split-half plan-field">
               <select v-model="form.plan" class="form-select liquid-glass-input">
                 <option value="A">Plan A</option>
                 <option value="B">Plan B</option>
@@ -61,12 +61,15 @@
               </select>
             </div>
 
-            <div class="split-half">
-              <input
-                type="date"
-                v-model="form.deadline"
-                class="form-input liquid-glass-input"
-              />
+            <div class="split-half date-field">
+              <div class="date-wrapper">
+                <input
+                  type="date"
+                  v-model="form.deadline"
+                  class="form-input liquid-glass-input date-input"
+                />
+                <span v-if="!form.deadline" class="date-placeholder">DATE</span>
+              </div>
             </div>
           </div>
 
@@ -793,6 +796,21 @@ export default {
 
 .form-row-split { display: flex; gap: 12px; align-items: flex-end; }
 .split-half { width: 50%; box-sizing: border-box; }
+
+/* date wrapper and placeholder */
+.date-wrapper { position: relative; }
+.date-placeholder {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+}
+.date-input { text-align: center; }
 .add-button.full-width { width: 100%; justify-content: center; }
 
 .form-input.large {
@@ -1115,9 +1133,10 @@ export default {
     margin-left: 0;
   }
 
-  /* On small screens stack the split row vertically for better usability */
+  /* Keep plan full width but show date centered and smaller (40%) */
   .form-row-split { flex-direction: column; }
-  .split-half { width: 100%; box-sizing: border-box; }
+  .plan-field { width: 100%; }
+  .date-field { width: 40%; box-sizing: border-box; margin: 0 auto; }
 
   .task-list-container {
     padding: 0 10px;
