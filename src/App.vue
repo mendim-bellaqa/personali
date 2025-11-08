@@ -7,7 +7,7 @@
     </div>
 
     <!-- Main Content with proper top padding for UniversalBanner -->
-    <main class="relative z-10 pt-20">
+    <main class="relative z-10 pt-5">
       <router-view @login="onLogin" />
     </main>
   </div>

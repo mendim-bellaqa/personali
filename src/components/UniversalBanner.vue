@@ -444,8 +444,18 @@ export default {
     font-size: 18px;
   }
   
+  /* Keep nav visible on very small screens; make it horizontally scrollable */
   .nav-menu {
-    display: none; /* Hide nav items on very small screens */
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-items {
+    display: flex;
+    gap: 6px;
+    white-space: nowrap;
+    align-items: center;
   }
 }
 

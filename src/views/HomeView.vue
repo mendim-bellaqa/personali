@@ -9,10 +9,10 @@
 
     <!-- Header Section -->
     <header class="relative z-10 pt-12 pb-8 px-5 text-center">
-      <div class="container mx-auto mt-16">
+      <div style="margin-top: 50px;" class="container mx-auto mt-12">
         <div class="animate-fade-in-up">
           <h1 class="font-serif text-5xl md:text-7xl font-bold text-white mb-4 tracking-wider">
-            <span class="bg-gradient-to-r from-white mt-10 via-blue-100 to-purple-200 bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r from-white mt-4 via-blue-100 to-purple-200 bg-clip-text text-transparent">
               PASS
             </span>
           </h1>
@@ -28,7 +28,7 @@
     </header>
 
     <!-- Main Card Carousel -->
-  <main class="relative z-10 px-5 pb-12 pt-24">
+  <main class="relative z-10 px-5 pb-12 pt-4">
       <div class="container mx-auto">
         <div
           ref="scrollContainer"
@@ -235,13 +235,48 @@ export default {
       this.setupIntersectionObserver();
       // show first card by default
       this.$nextTick(() => this.scrollToCard(0, 'auto'));
+
+      // ensure touch event listeners are non-passive so preventDefault works on mobile
+      const container = this.$refs.scrollContainer;
+      if (container && container.addEventListener) {
+        try {
+          container.addEventListener('touchstart', this.startTouch, { passive: false });
+          container.addEventListener('touchmove', this.onTouch, { passive: false });
+          container.addEventListener('touchend', this.stopTouch, { passive: false });
+          container.addEventListener('touchcancel', this.stopTouch, { passive: false });
+          // store ref for removal later
+          this._scrollContainer = container;
+        } catch (err) {
+          // fallback for older browsers
+          container.addEventListener('touchstart', this.startTouch);
+          container.addEventListener('touchmove', this.onTouch);
+          container.addEventListener('touchend', this.stopTouch);
+          container.addEventListener('touchcancel', this.stopTouch);
+          this._scrollContainer = container;
+        }
+      }
     });
   },
   beforeDestroy() {
     if (this.intersectionObserver) {
       this.intersectionObserver.disconnect();
     }
-    // no RAF to stop anymore
+    // remove manual listeners if attached
+    if (this._scrollContainer) {
+      try {
+        this._scrollContainer.removeEventListener('touchstart', this.startTouch, { passive: false });
+        this._scrollContainer.removeEventListener('touchmove', this.onTouch, { passive: false });
+        this._scrollContainer.removeEventListener('touchend', this.stopTouch, { passive: false });
+        this._scrollContainer.removeEventListener('touchcancel', this.stopTouch, { passive: false });
+      } catch (err) {
+        // older browsers: remove without options
+        this._scrollContainer.removeEventListener('touchstart', this.startTouch);
+        this._scrollContainer.removeEventListener('touchmove', this.onTouch);
+        this._scrollContainer.removeEventListener('touchend', this.stopTouch);
+        this._scrollContainer.removeEventListener('touchcancel', this.stopTouch);
+      }
+      this._scrollContainer = null;
+    }
   },
   methods: {
     // compute nearest card index based on container center
@@ -288,7 +323,7 @@ export default {
       const absDy = Math.abs(dy);
 
       // If horizontal swipe dominates and passes threshold, go to next/prev card
-      const SWIPE_THRESHOLD = 40; // px
+      const SWIPE_THRESHOLD = 10; // px
       if (absDx > SWIPE_THRESHOLD && absDx > absDy) {
         if (dx < 0) {
           // swipe left -> next

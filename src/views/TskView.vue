@@ -66,9 +66,9 @@
                 <input
                   type="date"
                   v-model="form.deadline"
-                  class="form-input liquid-glass-input date-input"
+                  class="form-input liquid-glass-input"
                 />
-                <span v-if="!form.deadline" class="date-placeholder">DATE</span>
+                <span v-if="!form.deadline" class="date-placeholder"></span>
               </div>
             </div>
           </div>
@@ -231,9 +231,10 @@
 
     <!-- Footer Section -->
     <footer class="footer footer-fixed" role="contentinfo">
-      <button @click="sendMarkedToArchive" class="footer-btn">DONE</button>
-      <button @click="viewArchivedTasks" class="footer-btn">ARCHIVE</button>
       <button @click="backToCollection" class="footer-btn">Collection</button>
+      <button @click="viewArchivedTasks" class="footer-btn">ARCHIVE</button>
+      
+      <button @click="sendMarkedToArchive" class="footer-btn">DONE</button>
     </footer>
   </div>
 </template>
@@ -278,6 +279,10 @@ export default {
   },
   mounted() {
     this.loadTasks();
+    // initialize decorative particles for smooth independent motion
+    this.$nextTick(() => {
+      this.setupParticles();
+    });
   },
   methods: {
     loadTasks() {
@@ -478,6 +483,38 @@ export default {
           console.error('Failed to archive marked tasks', err);
           alert('Failed to archive marked tasks. See console for details.');
         });
+    },
+
+    setupParticles() {
+      // Randomize particle placement, size, animation duration and delay so they move independently
+      try {
+        const container = this.$el;
+        if (!container) return;
+        const particles = container.querySelectorAll('.particles .particle');
+        particles.forEach((p) => {
+          const dx = (Math.random() * 80 - 40).toFixed(2) + 'px'; // horizontal drift
+          const dy = (Math.random() * 60 - 30).toFixed(2) + 'px'; // vertical drift
+          const dur = (8 + Math.random() * 12).toFixed(2) + 's'; // 8-20s
+          const delay = (-Math.random() * 10).toFixed(2) + 's'; // negative delay to stagger
+          const size = (2 + Math.random() * 10).toFixed(2) + 'px';
+          const left = (Math.random() * 100).toFixed(2) + '%';
+          const top = (Math.random() * 100).toFixed(2) + '%';
+
+          p.style.setProperty('--dx', dx);
+          p.style.setProperty('--dy', dy);
+          p.style.setProperty('--dur', dur);
+          p.style.setProperty('--delay', delay);
+          p.style.left = left;
+          p.style.top = top;
+          p.style.width = size;
+          p.style.height = size;
+          p.style.opacity = (0.15 + Math.random() * 0.7).toString();
+          p.style.willChange = 'transform, opacity';
+        });
+      } catch (err) {
+        // silent fallback
+        console.warn('setupParticles failed', err);
+      }
     },
 
     viewArchivedTasks() {
@@ -757,6 +794,7 @@ export default {
   max-width: 780px;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 50px;
 }
 
 .form-header {
@@ -828,6 +866,7 @@ export default {
 /* Task List */
 .task-list-container {
   margin-top: 40px;
+  margin-bottom: 50px;
 }
 
 .task-list-header {
@@ -1082,17 +1121,18 @@ export default {
 
 /* Fixed centered footer so user always sees the actions */
 .footer-fixed {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 18px;
-  z-index: 1200;
-  background: rgba(0,0,0,0.9);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 10px 14px;
-  border-radius: 14px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    position: fixed;
+    left: 50%;
+    width: 100%;
+    transform: translateX(-50%);
+    bottom: 18px;
+    z-index: 1200;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 17px 74px;
+    border-radius: 35px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
 }
 
 .footer-btn {
@@ -1140,6 +1180,7 @@ export default {
 
   .task-list-container {
     padding: 0 10px;
+    margin-bottom: 50px;
   }
 }
 
