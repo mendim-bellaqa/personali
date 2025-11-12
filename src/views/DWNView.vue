@@ -103,11 +103,11 @@ export default {
     // Get the correct CSS classes based on selection
     getDayClasses(day) {
       if (this.selectedDays.has(day)) {
-        // Selected state: Green liquid glass
-        return 'liquid-glass-button text-white';
+        // Selected state: Blue highlighting
+        return 'day-selected bg-blue-500 text-white border-blue-400 shadow-lg';
       } else {
         // Unselected state: Dark 3D button
-        return 'liquid-glass text-gray-300';
+        return 'day-unselected text-gray-300 hover:bg-gray-700';
       }
     },
     // Reset selections and save
@@ -129,7 +129,7 @@ export default {
 <style scoped>
 /* These styles are from your other pages for consistency */
 .bg-grid-pattern {
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 2px, transparent 2px);
   background-size: 60px 60px;
@@ -140,5 +140,25 @@ export default {
 }
 .animate-gridMove {
   animation: gridMove 30s linear infinite;
+}
+
+/* Calendar Day Styles */
+.day-selected {
+  background: rgba(59, 130, 246, 0.8);
+  border: 2px solid rgba(59, 130, 246, 0.6);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  transform: scale(1.1);
+}
+
+.day-unselected {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.day-unselected:hover {
+  background: rgba(107, 114, 128, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
 }
 </style>

@@ -68,7 +68,7 @@ export default {
       navItems: [
         { name: 'Collection', path: '/' },
         { name: 'Tasks', path: '/tsk' },
-        { name: 'Projects', path: '/pry' },
+        { name: 'Projects', path: '/project' },
         { name: 'Focus', path: '/med' },
         { name: 'Calendar', path: '/dwn' },
         { name: 'Archive', path: '/archive' }
@@ -158,18 +158,16 @@ export default {
   justify-content: space-between;
   gap: 24px;
   border: none;
-  /* dark blurred background as requested */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
   padding: 12px 18px;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  /* dark semi-opaque background (90% black) */
-  background: rgba(0,0,0,0.9);
-  /* remove any box-shadow/outline so header is purely text/buttons */
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

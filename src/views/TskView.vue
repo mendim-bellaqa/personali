@@ -135,6 +135,12 @@
                         {{ task.plan }}
                       </span>
                       <span class="task-deadline">{{ formatDate(task.deadline) }}</span>
+                      <button @click="incrementMiningPoints(task)" class="mining-btn">
+                        <span class="mining-points">{{ task.miningPoints || 0 }}</span>
+                        <svg class="mining-icon" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                   <p v-if="task.description" :class="['task-description', { 'completed': task.completed }]">
@@ -147,6 +153,11 @@
                   <button @click="editTask(task)" class="task-action-btn">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                    </svg>
+                  </button>
+                  <button @click="archiveTask(task.id)" class="task-action-btn text-yellow-400">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
                     </svg>
                   </button>
                   <button @click="deleteTask(task.id)" class="task-action-btn text-red-400">
@@ -214,6 +225,7 @@
           </div>
           <div class="modal-actions">
             <button type="button" @click="cancelEdit" class="btn-secondary">Cancel</button>
+            <button type="button" @click="archiveTaskFromEdit" class="btn-archive">Archive this work</button>
             <button type="submit" class="btn-primary liquid-glass-button">Save</button>
           </div>
         </form>
@@ -300,7 +312,13 @@ export default {
           ...doc.data()
         }))
         .filter(task => !task.archived)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+        .sort((a, b) => {
+          // Sort by newest first (newest tasks at top)
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          }
+          return (a.order || 0) - (b.order || 0);
+        });
       });
     },
 
@@ -321,6 +339,7 @@ export default {
           completed: false,
           archived: false,
           order: nextOrder,
+          miningPoints: 0,
           userId: auth.currentUser.uid,
           createdAt: new Date(),
           updatedAt: new Date()
@@ -373,6 +392,18 @@ export default {
       }
     },
 
+    async archiveTask(taskId) {
+      try {
+        await updateDoc(doc(db, 'tasks', taskId), {
+          archived: true,
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error archiving task:', error);
+        alert('Failed to archive task. Please try again.');
+      }
+    },
+
     cancelDelete() {
       this.pendingDeleteId = null;
       this.showDeleteConfirm = false;
@@ -391,6 +422,7 @@ export default {
           description: this.editingTask.description,
           plan: this.editingTask.plan,
           deadline: this.editingTask.deadline || null,
+          miningPoints: this.editingTask.miningPoints || 0,
           updatedAt: serverTimestamp()
         });
 
@@ -433,9 +465,20 @@ export default {
         return;
       }
 
+      // Store the dragged task temporarily
       const draggedTask = this.tasks[this.dragIndex];
+      
+      // Remove the dragged task from its original position
       this.tasks.splice(this.dragIndex, 1);
+      
+      // Insert the dragged task at the new position
       this.tasks.splice(dropIndex, 0, draggedTask);
+      
+      // Update the dragIndex to the new position for proper cleanup
+      this.dragIndex = dropIndex;
+      
+      // Save the new order to database after successful drop
+      this.updateTaskOrders();
     },
 
     onDragEnd() {
@@ -523,6 +566,36 @@ export default {
 
     backToCollection() {
       this.$router.push('/');
+    },
+
+    async incrementMiningPoints(task) {
+      try {
+        const newPoints = (task.miningPoints || 0) + 1;
+        await updateDoc(doc(db, 'tasks', task.id), {
+          miningPoints: newPoints,
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error updating mining points:', error);
+      }
+    },
+
+    async archiveTaskFromEdit() {
+      if (!this.editingTask) return;
+      
+      const confirmed = confirm('Are you sure you want to archive this task? It will be moved to the archive.');
+      if (!confirmed) return;
+      
+      try {
+        await updateDoc(doc(db, 'tasks', this.editingTask.id), {
+          archived: true,
+          updatedAt: serverTimestamp()
+        });
+        this.editingTask = null;
+      } catch (error) {
+        console.error('Error archiving task:', error);
+        alert('Failed to archive task. Please try again.');
+      }
     }
   }
 };
@@ -565,8 +638,26 @@ export default {
 .particle:nth-child(10) { top: 25%; left: 85%; animation-delay: 9s; }
 
 @keyframes float {
-  0%, 100% { opacity: 0; transform: translateY(0px); }
-  50% { opacity: 1; transform: translateY(-20px); }
+  0% {
+    opacity: 0;
+    transform: translateY(0px) translateX(0px) scale(1);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-15px) translateX(10px) scale(1.1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-25px) translateX(-5px) scale(0.9);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(-10px) translateX(15px) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0px) translateX(0px) scale(1);
+  }
 }
 
 .bg-gradient-orb {
@@ -1003,6 +1094,45 @@ export default {
   white-space: nowrap;
 }
 
+/* Mining Points Button */
+.mining-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 16px;
+  color: rgb(134, 239, 172);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.mining-btn:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.mining-points {
+  font-weight: 700;
+  min-width: 8px;
+  text-align: center;
+}
+
+.mining-icon {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.2s ease;
+}
+
+.mining-btn:hover .mining-icon {
+  transform: scale(1.1);
+}
+
 .task-description {
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
@@ -1094,6 +1224,22 @@ export default {
   border-color: rgba(107, 114, 128, 0.4);
 }
 
+.btn-archive {
+  padding: 12px 20px;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
+  color: #fbbf24;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-archive:hover {
+  background: rgba(245, 158, 11, 0.3);
+  border-color: rgba(245, 158, 11, 0.5);
+  transform: translateY(-1px);
+}
+
 /* Animations */
 .task-enter-active,
 .task-leave-active {
@@ -1127,12 +1273,12 @@ export default {
     transform: translateX(-50%);
     bottom: 18px;
     z-index: 1200;
-    background: rgba(0,0,0,0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     padding: 17px 74px;
-    border-radius: 35px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.6); 
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
 }
 
 .footer-btn {
@@ -1173,10 +1319,52 @@ export default {
     margin-left: 0;
   }
 
-  /* Keep plan full width but show date centered and smaller (40%) */
-  .form-row-split { flex-direction: column; }
-  .plan-field { width: 100%; }
-  .date-field { width: 40%; box-sizing: border-box; margin: 0 auto; }
+  /* Keep Plan and Date on same row with equal width on mobile */
+  .form-row-split {
+    flex-direction: row;
+    gap: 8px;
+  }
+  .plan-field {
+    width: 50%;
+    box-sizing: border-box;
+  }
+  .date-field {
+    width: 50%;
+    box-sizing: border-box;
+  }
+
+  /* Improve date button display */
+  .date-wrapper {
+    position: relative;
+    height: 44px;
+  }
+  
+  .date-wrapper input[type="date"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* Show selected date or placeholder */
+  .date-wrapper input[type="date"]:not(:placeholder-shown) {
+    color: white;
+  }
+
+  .date-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    filter: invert(1);
+  }
 
   .task-list-container {
     padding: 0 10px;
@@ -1189,6 +1377,11 @@ export default {
     padding: 20px;
   }
   
+  /* Even smaller spacing for very small screens */
+  .form-row-split {
+    gap: 6px;
+  }
+  
   .task-item {
     padding: 12px;
   }
@@ -1199,6 +1392,12 @@ export default {
   
   .logo-container h1 {
     font-size: 24px;
+  }
+
+  /* Ensure date input is properly sized on very small screens */
+  .date-wrapper input[type="date"] {
+    font-size: 13px;
+    padding-right: 24px; /* Make room for the calendar icon */
   }
 }
 

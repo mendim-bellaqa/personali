@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import TskView from '../views/TskView.vue'
-import HomeView from '../views/HomeView.vue'
 import PryView from '../views/PryView.vue'
+import HomeView from '../views/HomeView.vue'
+import ProjectView from '../views/ProjectView.vue'
 import MedView from '../views/MedView.vue'
-import DWNView from '../views/DWNView.vue'  // Good, uncommented and used
+import DWNView from '../views/DWNView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ArchiveView from '../views/ArchiveView.vue'
@@ -18,12 +18,12 @@ const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/register', name: 'Register', component: RegisterView },
-  { path: '/tsk', name: 'Tsk', component: TskView, meta: { requiresAuth: true } },
-  { path: '/pry', name: 'PG', component: PryView, meta: { requiresAuth: true } },
+  { path: '/tsk', name: 'Tasks', component: PryView, meta: { requiresAuth: true } },
+  { path: '/project', name: 'Projects', component: ProjectView, meta: { requiresAuth: true } },
   { path: '/profile', name: 'Profile', component: ProfileView, meta: { requiresAuth: true } },
   { path: '/settings', name: 'Settings', component: SettingsView, meta: { requiresAuth: true } },
-  { path: '/med', name: 'SC', component: MedView, meta: { requiresAuth: true } },
-  { path: '/dwn', name: 'DWN', component: DWNView, meta: { requiresAuth: true } },
+  { path: '/med', name: 'Focus', component: MedView, meta: { requiresAuth: true } },
+  { path: '/dwn', name: 'Calendar', component: DWNView, meta: { requiresAuth: true } },
   { path: '/archive', name: 'Archive', component: ArchiveView, meta: { requiresAuth: true } },
 ]
 
