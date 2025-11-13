@@ -135,12 +135,6 @@
                         {{ task.plan }}
                       </span>
                       <span class="task-deadline">{{ formatDate(task.deadline) }}</span>
-                      <button @click="incrementMiningPoints(task)" class="mining-btn">
-                        <span class="mining-points">{{ task.miningPoints || 0 }}</span>
-                        <svg class="mining-icon" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-                        </svg>
-                      </button>
                     </div>
                   </div>
                   <p v-if="task.description" :class="['task-description', { 'completed': task.completed }]">
@@ -156,9 +150,7 @@
                     </svg>
                   </button>
                   <button @click="archiveTask(task.id)" class="task-action-btn text-yellow-400">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
-                    </svg>
+                    <span class="archive-icon-text">A</span>
                   </button>
                   <button @click="deleteTask(task.id)" class="task-action-btn text-red-400">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -167,6 +159,15 @@
                     </svg>
                   </button>
                 </div>
+              </div>
+              <!-- Mining Points Button - Moved Below Actions as Requested -->
+              <div class="mining-points-container">
+                <button @click="incrementMiningPoints(task)" class="mining-btn-liquid-glass">
+                  <span class="mining-points">{{ task.miningPoints || 0 }}</span>
+                  <svg class="mining-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                  </svg>
+                </button>
               </div>
             </div>
           </transition-group>
@@ -242,11 +243,13 @@
     />
 
     <!-- Footer Section -->
-    <footer class="footer footer-fixed" role="contentinfo">
-      <button @click="backToCollection" class="footer-btn">Collection</button>
-      <button @click="viewArchivedTasks" class="footer-btn">ARCHIVE</button>
-      
-      <button @click="sendMarkedToArchive" class="footer-btn">DONE</button>
+    <footer class="footer-container" role="contentinfo">
+      <div class="footer-content">
+        <button @click="backToCollection" class="footer-btn">Collection</button>
+        <button @click="viewArchivedTasks" class="footer-btn">ARCHIVE</button>
+         
+        <button @click="sendMarkedToArchive" class="footer-btn">DONE</button>
+      </div>
     </footer>
   </div>
 </template>
@@ -1133,6 +1136,89 @@ export default {
   transform: scale(1.1);
 }
 
+/* Mining Points Button Container - New Position Below Actions */
+.mining-points-container {
+  margin-top: 12px;
+  padding: 0 16px 16px 16px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Enhanced Liquid Glass Mining Button */
+.mining-btn-liquid-glass {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 16px;
+  color: rgb(134, 239, 172);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  position: relative;
+  overflow: hidden;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow:
+    0 4px 15px rgba(16, 185, 129, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: float 3s ease-in-out infinite;
+}
+
+.mining-btn-liquid-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.mining-btn-liquid-glass:hover::before {
+  left: 100%;
+}
+
+.mining-btn-liquid-glass:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow:
+    0 8px 25px rgba(16, 185, 129, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.mining-btn-liquid-glass .mining-points {
+  font-size: 16px;
+  font-weight: 700;
+  min-width: 20px;
+  text-align: center;
+}
+
+.mining-btn-liquid-glass .mining-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.8;
+  transition: transform 0.2s ease;
+}
+
+.mining-btn-liquid-glass:hover .mining-icon {
+  transform: scale(1.1);
+}
+
+/* Archive Icon Text */
+.archive-icon-text {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
 .task-description {
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
@@ -1257,47 +1343,69 @@ export default {
 }
 
 /* Footer */
-.footer {
+.footer-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1200;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 -10px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-content {
   display: flex;
   justify-content: center;
   gap: 18px;
-  padding: 8px 12px;
+  padding: 20px 12px;
   align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-/* Fixed centered footer so user always sees the actions */
-.footer-fixed {
-    position: fixed;
-    left: 50%;
-    width: 100%;
-    transform: translateX(-50%);
-    bottom: 18px;
-    z-index: 1200;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    padding: 17px 74px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+.footer-container:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow:
+    0 -15px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 30px rgba(255, 255, 255, 0.1);
 }
 
 .footer-btn {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: rgba(255,255,255,0.9);
   cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
   font-weight: 600;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
 .footer-btn + .footer-btn {
-  margin-left: 8px;
+  margin-left: 12px;
 }
 
 .footer-btn:hover {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255, 255, 255, 0.3);
   color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Add bottom padding to main content to account for fixed footer */
+.main-center {
+  padding-bottom: 100px;
 }
 
 /* Responsive Design */

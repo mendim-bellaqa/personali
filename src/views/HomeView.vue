@@ -32,7 +32,7 @@
       <div class="container mx-auto">
         <div
           ref="scrollContainer"
-          class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide cursor-grab touch-pan-y py-8 carousel-scroll"
+          class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide touch-pan-y py-8 carousel-scroll enhanced-scrolling"
           :class="{ 'is-grabbing': isDragging, 'is-paused': isPaused }"
           @mousedown="startDrag"
           @mouseleave="stopDrag"
@@ -59,36 +59,38 @@
               class="block group"
             >
               <div class="card-container">
-                <!-- Card Background with Advanced Effects -->
-                <div class="card-bg">
-                  <img 
-                    :src="entry.item.image" 
+                <!-- Enhanced Card Background with Liquid Glass Effects -->
+                <div class="card-bg-enhanced">
+                  <img
+                    :src="entry.item.image"
                     :alt="entry.item.title + ' background'"
-                    class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-opacity duration-500"
+                    class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-30 transition-all duration-700"
                   />
-                  <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-white/5 group-hover:from-white/20 group-hover:to-white/10 transition-all duration-500"></div>
+                  <div class="absolute inset-0 bg-gradient-to-br from-white/15 via-white/5 to-white/10 group-hover:from-white/25 group-hover:via-white/15 group-hover:to-white/20 transition-all duration-700"></div>
+                  <div class="card-liquid-overlay"></div>
                 </div>
                 
-                <!-- Animated Border -->
-                <div class="card-border">
-                  <div class="card-glow"></div>
+                <!-- Enhanced Animated Border with Liquid Glass -->
+                <div class="card-border-enhanced">
+                  <div class="card-glow-enhanced"></div>
+                  <div class="card-border-animation"></div>
                 </div>
                 
-                <!-- Card Content -->
-                <div :class="['relative z-20 p-6 h-72 flex flex-col justify-between', (entry.origIndex === activeIndex && !isDragging) ? 'active-card-wrap' : '']">
+                <!-- Enhanced Card Content -->
+                <div :class="['relative z-20 p-6 h-72 flex flex-col justify-between card-content-enhanced', (entry.origIndex === activeIndex && !isDragging) ? 'active-card-wrap' : '']">
                   <div>
                     <div class="flex items-center justify-between mb-4">
-                      <span class="card-number">{{ String((entry.origIndex || 0) + 1).padStart(2, '0') }}</span>
-                      <div class="card-status" :class="entry.item.status">
-                        <div class="w-2 h-2 rounded-full"></div>
+                      <span class="card-number-enhanced">{{ String((entry.origIndex || 0) + 1).padStart(2, '0') }}</span>
+                      <div class="card-status-enhanced" :class="entry.item.status">
+                        <div class="w-3 h-3 rounded-full pulse-glow"></div>
                       </div>
                     </div>
                     
-                    <h2 class="font-serif text-3xl font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-200 group-hover:to-purple-300 group-hover:bg-clip-text transition-all duration-500">
+                    <h2 class="font-serif text-3xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-200 group-hover:via-purple-200 group-hover:to-pink-300 group-hover:bg-clip-text transition-all duration-700 transform group-hover:scale-105">
                       {{ entry.item.title }}
                     </h2>
                     
-                    <p class="text-gray-300 text-base font-light leading-relaxed mb-4">
+                    <p class="text-gray-300 text-base font-light leading-relaxed mb-5 group-hover:text-gray-200 transition-all duration-500">
                       {{ entry.item.description }}
                     </p>
                     
@@ -96,20 +98,20 @@
                       <span
                         v-for="tag in entry.item.tags"
                         :key="tag"
-                        class="px-2 py-1 text-xs font-medium rounded-full bg-white/10 text-gray-300 border border-white/20 backdrop-blur-sm"
+                        class="px-3 py-1 text-xs font-medium rounded-full bg-white/15 text-gray-300 border border-white/25 backdrop-blur-sm group-hover:bg-white/25 group-hover:border-white/40 transition-all duration-300 hover:scale-105"
                       >
                         {{ tag }}
                       </span>
                     </div>
                   </div>
                   
-                  <div class="card-action">
+                  <div class="card-action-enhanced">
                     <div class="flex items-center justify-between">
-                      <span class="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+                      <span class="text-sm font-medium text-gray-300 group-hover:text-white transition-all duration-300 font-semibold">
                         {{ entry.item.cta }}
                       </span>
-                      <div class="card-arrow">
-                        <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div class="card-arrow-enhanced">
+                        <svg class="w-5 h-5 transform group-hover:translate-x-2 group-hover:scale-110 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                       </div>
@@ -489,69 +491,129 @@ body {
   animation: fade-in-up 1s ease-out;
 }
 
-/* Card Container */
+/* Enhanced Card Container with Liquid Glass */
 .card-container {
   position: relative;
   width: 18rem;
   height: 22rem;
-  border-radius: 1.5rem;
+  border-radius: 1.75rem;
   overflow: hidden;
   cursor: pointer;
   transform: transition-all duration-500;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .card-container:hover {
-  transform: scale(1.03) translateY(-0.3rem);
+  transform: scale(1.05) translateY(-0.5rem);
+  filter: brightness(1.1);
 }
 
-/* Active centered card styling for smoother in/out motion */
+/* Enhanced Active Card Styling */
 .active-card-wrap {
   transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 420ms ease;
-  transform: translateY(-8px) scale(1.04);
+  transform: translateY(-12px) scale(1.06);
   z-index: 40;
+  filter: brightness(1.1) saturate(1.2);
 }
 
-.card-container { transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+.card-container {
+  transition: all 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-/* Card Background */
-.card-bg {
+/* Enhanced Card Background with Liquid Glass */
+.card-bg-enhanced {
   position: absolute;
   inset: 0;
-  border-radius: 1.5rem;
+  border-radius: 1.75rem;
   overflow: hidden;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-.card-bg::before {
+.card-bg-enhanced::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-  transition: all 0.5s ease;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.card-container:hover .card-bg::before {
-  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+.card-container:hover .card-bg-enhanced::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
 }
 
-/* Card Border with Glow */
-.card-border {
+.card-liquid-overlay {
   position: absolute;
   inset: 0;
-  border-radius: 1.5rem;
-  padding: 1px;
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
-}
-
-.card-glow {
-  position: absolute;
-  inset: 0;
-  border-radius: 1.5rem;
+  background: linear-gradient(45deg,
+    rgba(59, 130, 246, 0.1) 0%,
+    rgba(147, 51, 234, 0.1) 25%,
+    rgba(236, 72, 153, 0.1) 50%,
+    rgba(16, 185, 129, 0.1) 75%,
+    rgba(59, 130, 246, 0.1) 100%);
   opacity: 0;
-  transition: opacity 0.5s ease;
-  background: linear-gradient(45deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3));
+  transition: opacity 0.7s ease;
+  animation: liquidFlow 8s ease-in-out infinite;
 }
 
-.card-container:hover .card-glow {
+.card-container:hover .card-liquid-overlay {
+  opacity: 1;
+}
+
+@keyframes liquidFlow {
+  0%, 100% { transform: translateX(-100%) rotate(0deg); }
+  25% { transform: translateX(0%) rotate(90deg); }
+  50% { transform: translateX(100%) rotate(180deg); }
+  75% { transform: translateX(0%) rotate(270deg); }
+}
+
+/* Enhanced Card Border with Liquid Glass */
+.card-border-enhanced {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.75rem;
+  padding: 2px;
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+  overflow: hidden;
+}
+
+.card-border-animation {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.75rem;
+  background: linear-gradient(45deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.3) 25%,
+    rgba(147, 51, 234, 0.3) 50%,
+    rgba(236, 72, 153, 0.3) 75%,
+    transparent 100%);
+  opacity: 0;
+  animation: borderRotate 4s linear infinite;
+}
+
+.card-container:hover .card-border-animation {
+  opacity: 0.8;
+}
+
+@keyframes borderRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.card-glow-enhanced {
+  position: absolute;
+  inset: 0;
+  border-radius: 1.75rem;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  background: linear-gradient(45deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3), rgba(236, 72, 153, 0.3));
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+}
+
+.card-container:hover .card-glow-enhanced {
   opacity: 100;
   animation: pulse-glow 2s ease-in-out infinite;
 }
@@ -565,34 +627,89 @@ body {
   }
 }
 
-/* Card Elements */
-.card-number {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.7);
-  font-family: monospace;
+/* Enhanced Card Elements with Liquid Glass */
+.card-number-enhanced {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.8);
+  font-family: 'Monaco', monospace;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  letter-spacing: 1px;
 }
 
-.card-status {
+.card-status-enhanced {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 9999px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
-.card-status.active {
-  background-color: rgba(34, 197, 94, 0.2);
+.card-status-enhanced.active {
+  background: rgba(34, 197, 94, 0.2);
   color: rgb(134, 239, 172);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
 }
 
-.card-status.coming-soon {
-  background-color: rgba(120, 120, 120, 0.2);
+.pulse-glow {
+  animation: pulse-glow-element 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow-element {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
+    transform: scale(1.1);
+  }
+}
+
+.card-status-enhanced.coming-soon {
+  background: rgba(120, 120, 120, 0.2);
   color: rgb(200, 200, 200);
-  border: 1px solid rgba(120, 120, 120, 0.3);
+  border: 1px solid rgba(120, 120, 120, 0.4);
+  box-shadow: 0 4px 15px rgba(120, 120, 120, 0.2);
+}
+
+/* Enhanced Card Content */
+.card-content-enhanced {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Action Area */
+.card-action-enhanced {
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.card-container:hover .card-action-enhanced {
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 12px 35px rgba(0, 0, 0, 0.4);
+}
+
+.card-arrow-enhanced {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Action Area */
@@ -667,6 +784,36 @@ body {
 
 .touch-pan-y {
   touch-action: pan-y;
+}
+
+/* Enhanced iPhone Scrolling */
+.enhanced-scrolling {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 2rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.enhanced-scrolling::-webkit-scrollbar {
+  display: none;
+}
+
+.enhanced-scrolling {
+  scroll-behavior: smooth;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.enhanced-scrolling .snap-center {
+  scroll-snap-align: center;
+}
+
+@media (max-width: 768px) {
+  .enhanced-scrolling {
+    scroll-padding: 1rem;
+  }
 }
 
 /* Typography */
