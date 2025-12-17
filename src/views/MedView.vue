@@ -1,21 +1,8 @@
 <template>
-  <div class="relative min-h-screen bg-black overflow-hidden">
+  <div class="relative min-h-screen overflow-hidden">
     <UniversalBanner />
     
-    <!-- Enhanced Animated Background with Particles and Orbs -->
-    <div class="fixed inset-0 z-0">
-      <div class="animated-bg">
-        <div class="particles">
-          <div v-for="i in 30" :key="i" class="particle" :style="{ '--delay': i * 0.3 + 's' }"></div>
-        </div>
-        <div class="bg-gradient-orb orb-1"></div>
-        <div class="bg-gradient-orb orb-2"></div>
-        <div class="bg-gradient-orb orb-3"></div>
-        <div class="floating-elements">
-          <div v-for="i in 12" :key="'element-' + i" class="floating-element" :style="{ '--delay': i * 0.8 + 's', '--size': (20 + Math.random() * 40) + 'px' }"></div>
-        </div>
-      </div>
-    </div>
+    <!-- Main Container -->
 
     <!-- Main Container -->
     <div class="relative z-10 w-full max-w-2xl mx-auto pt-32 px-5 pb-20">
@@ -353,14 +340,7 @@ export default {
 </script>
 
 <style scoped>
-/* Enhanced Animated Background */
-.animated-bg {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  overflow: hidden;
-}
+
 
 .particles {
   position: absolute;

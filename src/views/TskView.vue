@@ -1,20 +1,8 @@
 <template>
-  <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-5 text-white select-none relative">
+  <div class="min-h-screen bg-transparent overflow-hidden flex items-center justify-center p-5 text-white select-none relative">
     <!-- Universal Banner -->
     <UniversalBanner />
     
-    <!-- Animated Background with Particles -->
-    <div class="fixed inset-0 z-0">
-      <div class="animated-bg">
-        <div class="particles">
-          <div v-for="i in 20" :key="i" class="particle" :style="{ '--delay': i * 0.5 + 's' }"></div>
-        </div>
-        <div class="bg-gradient-orb orb-1"></div>
-        <div class="bg-gradient-orb orb-2"></div>
-        <div class="bg-gradient-orb orb-3"></div>
-      </div>
-    </div>
-
   <!-- Main Content Container -->
   <main class="relative z-10 w-full max-w-4xl mx-auto main-center">
       <!-- Task Form Container -->
@@ -113,7 +101,7 @@
               @drop="onDrop($event, index)"
               @dragend="onDragEnd"
               class="task-item liquid-glass-card"
-              :class="{ 'completed': task.completed, 'dragging': isDragging }"
+              :class="[{ 'completed': task.completed, 'dragging': isDragging }, getTaskClasses(task)]"
             >
               <!-- Task Content -->
               <div class="task-content">
@@ -127,8 +115,9 @@
                 <!-- Task Details -->
                 <div class="task-details">
                   <div class="task-header">
-                    <h4 :class="['task-title', { 'completed': task.completed }]">
-                      {{ task.title }}
+                    <h4 :class="['task-title', { 'completed': task.completed }]" @click="toggleExpand(task.id)">
+                      {{ isExpanded(task.id) ? task.title : truncateTitle(task.title) }}
+                      <span v-if="task.title.length > 15 && !isExpanded(task.id)" class="text-xs text-blue-300 ml-1">(more)</span>
                     </h4>
                     <div class="task-meta">
                       <span :class="['task-plan', `plan-${task.plan}`]">
@@ -289,14 +278,15 @@ export default {
         deadline: ''
       }
       , showDeleteConfirm: false,
-      pendingDeleteId: null
+      pendingDeleteId: null,
+      expandedTaskIds: []
     };
   },
   mounted() {
     this.loadTasks();
     // initialize decorative particles for smooth independent motion
     this.$nextTick(() => {
-      this.setupParticles();
+      // Particles removed
     });
   },
   methods: {
@@ -331,8 +321,8 @@ export default {
           throw new Error('Task title cannot be empty');
         }
 
-        // Get the next order value for this user
-        const nextOrder = this.tasks.length > 0 ? Math.max(...this.tasks.map(t => t.order || 0)) + 1 : 0;
+        // New tasks go to the TOP (min order - 1)
+        const nextOrder = this.tasks.length > 0 ? Math.min(...this.tasks.map(t => t.order || 0)) - 1 : 0;
 
         const newTask = {
           title: this.form.title,
@@ -531,37 +521,7 @@ export default {
         });
     },
 
-    setupParticles() {
-      // Randomize particle placement, size, animation duration and delay so they move independently
-      try {
-        const container = this.$el;
-        if (!container) return;
-        const particles = container.querySelectorAll('.particles .particle');
-        particles.forEach((p) => {
-          const dx = (Math.random() * 80 - 40).toFixed(2) + 'px'; // horizontal drift
-          const dy = (Math.random() * 60 - 30).toFixed(2) + 'px'; // vertical drift
-          const dur = (8 + Math.random() * 12).toFixed(2) + 's'; // 8-20s
-          const delay = (-Math.random() * 10).toFixed(2) + 's'; // negative delay to stagger
-          const size = (2 + Math.random() * 10).toFixed(2) + 'px';
-          const left = (Math.random() * 100).toFixed(2) + '%';
-          const top = (Math.random() * 100).toFixed(2) + '%';
 
-          p.style.setProperty('--dx', dx);
-          p.style.setProperty('--dy', dy);
-          p.style.setProperty('--dur', dur);
-          p.style.setProperty('--delay', delay);
-          p.style.left = left;
-          p.style.top = top;
-          p.style.width = size;
-          p.style.height = size;
-          p.style.opacity = (0.15 + Math.random() * 0.7).toString();
-          p.style.willChange = 'transform, opacity';
-        });
-      } catch (err) {
-        // silent fallback
-        console.warn('setupParticles failed', err);
-      }
-    },
 
     viewArchivedTasks() {
       this.$router.push('/archive');
@@ -599,6 +559,52 @@ export default {
         console.error('Error archiving task:', error);
         alert('Failed to archive task. Please try again.');
       }
+    },
+
+    // UI Helpers
+    truncateTitle(title) {
+      if (!title) return '';
+      if (title.length <= 15) return title;
+      return title.substring(0, 15) + '...';
+    },
+
+    toggleExpand(taskId) {
+      if (this.expandedTaskIds.includes(taskId)) {
+        this.expandedTaskIds = this.expandedTaskIds.filter(id => id !== taskId);
+      } else {
+        this.expandedTaskIds.push(taskId);
+      }
+    },
+
+    isExpanded(taskId) {
+      return this.expandedTaskIds.includes(taskId);
+    },
+
+    getTaskClasses(task) {
+      if (task.completed) return '';
+      if (!task.deadline) return '';
+      
+      const now = new Date();
+      // Reset time portion for accurate day calculation
+      now.setHours(0, 0, 0, 0);
+      const deadline = new Date(task.deadline);
+      // deadline string comes as YYYY-MM-DD, parsing it as UTC often shifts it. 
+      // Let's create a local date from the input value string to be safe, or just rely on standard parsing if it matches user locale.
+      // Usually input type="date" value is YYYY-MM-DD. 
+      // To strictly match "Today", we need to be careful.
+      // Let's use simple millisecond diff for rough approximation or re-use formatDate logic.
+      
+      // Let's treat deadline string as midnight of that day in local time
+      const [year, month, day] = task.deadline.split('-').map(Number);
+      const deadlineDate = new Date(year, month - 1, day);
+      
+      const diffTime = deadlineDate - now;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // ceil because same day is 0
+
+      if (diffDays < 0) return 'task-overdue';
+      if (diffDays === 0) return 'task-urgent'; // Today
+      if (diffDays <= 3) return 'task-warning'; // Upcoming
+      return '';
     }
   }
 };
@@ -606,13 +612,7 @@ export default {
 
 <style scoped>
 /* Animated Background */
-.animated-bg {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  overflow: hidden;
-}
+/* Animated Background Removed */
 
 .particles {
   position: absolute;
@@ -812,6 +812,23 @@ export default {
   -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dynamic Deadline Classes */
+.task-overdue {
+  background: rgba(239, 68, 68, 0.25) !important; /* Red-500 */
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}
+
+.task-urgent {
+  background: rgba(248, 113, 113, 0.2) !important; /* Red-400 */
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+.task-warning {
+  background: rgba(251, 191, 36, 0.15) !important; /* Amber-400 */
+  border-color: rgba(251, 191, 36, 0.3) !important;
 }
 
 .liquid-glass-card:hover {
@@ -1054,6 +1071,7 @@ export default {
   color: white;
   margin: 0;
   font-size: 16px;
+  cursor: pointer;
 }
 
 .task-title.completed {
@@ -1491,7 +1509,8 @@ export default {
   }
   
   .task-item {
-    padding: 12px;
+    padding: 16px;
+    margin-bottom: 20px; /* More space between cards on mobile */
   }
   
   .form-header h2 {

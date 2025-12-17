@@ -145,6 +145,7 @@ export default {
 .universal-banner {
   position: fixed;
   top: 12px;
+ 
   left: 0;
   right: 0;
   z-index: 1000;
@@ -158,15 +159,12 @@ export default {
   justify-content: space-between;
   gap: 24px;
   border: none;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 20px;
   padding: 12px 18px;
   width: 100%;
+   margin-bottom: 50px;
   max-width: 1100px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -337,8 +335,6 @@ export default {
   padding: 8px 0;
   z-index: 50;
   background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.4),
@@ -381,15 +377,15 @@ export default {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .universal-banner {
-    top: 16px;
-    padding: 0 12px;
+    top: 10px;
+    padding: 0 16px;
   }
   
   .banner-container {
-    padding: 12px 16px;
+    padding: 10px 16px;
     gap: 16px;
-    min-width: 280px;
-    max-width: 700px;
+    min-width: unset;
+    max-width: 100%;
   }
   
   .nav-items {
@@ -404,16 +400,16 @@ export default {
 
 @media (max-width: 768px) {
   .universal-banner {
-    top: 12px;
-    padding: 0 8px;
+    top: 8px;
+    padding: 0 12px;
   }
   
   .banner-container {
-    padding: 10px 12px;
+    padding: 8px 12px;
     gap: 12px;
-    min-width: 260px;
-    max-width: 600px;
     border-radius: 16px;
+    /* Ensure it doesn't overflow horizontally */
+    max-width: 100%;
   }
   
   .banner-logo {
@@ -422,12 +418,28 @@ export default {
   
   .nav-items {
     gap: 4px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap; /* Prevent wrapping, allow scroll */
+  }
+  
+  .nav-menu {
+     overflow-x: auto;
+     -webkit-overflow-scrolling: touch;
+     /* Hide scrollbar */
+     scrollbar-width: none; 
+     -ms-overflow-style: none;
+     mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+     -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+     padding: 0 10px; /* Add some padding for mask effect */
+  }
+  .nav-menu::-webkit-scrollbar {
+    display: none;
   }
   
   .nav-item {
-    padding: 5px 10px;
-    font-size: 12px;
+    padding: 6px 12px;
+    font-size: 13px;
+    /* Ensure items don't shrink */
+    flex-shrink: 0;
   }
   
   .profile-name {
@@ -437,15 +449,13 @@ export default {
 
 @media (max-width: 480px) {
   .universal-banner {
-    top: 8px;
-    padding: 0 6px;
+    top: 6px;
+    padding: 0 8px;
   }
   
   .banner-container {
     padding: 8px 10px;
-    gap: 10px;
-    min-width: 240px;
-    max-width: 500px;
+    gap: 8px;
     border-radius: 14px;
   }
   
@@ -453,18 +463,22 @@ export default {
     font-size: 18px;
   }
   
-  /* Keep nav visible on very small screens; make it horizontally scrollable */
+  /* Refine specific mobile nav */
   .nav-menu {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    margin: 0 4px;
   }
 
   .nav-items {
-    display: flex;
-    gap: 6px;
-    white-space: nowrap;
-    align-items: center;
+    gap: 8px;
+  }
+  
+  .auth-links {
+    gap: 4px;
+  }
+  
+  .banner-auth-btn {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }
 

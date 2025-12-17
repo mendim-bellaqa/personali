@@ -1,23 +1,8 @@
 <!-- C:\laragon\www\pass\src\views\DWNView.vue -->
 <template>
-  <div class="relative min-h-screen bg-black overflow-hidden">
+  <div class="relative min-h-screen overflow-hidden">
     <UniversalBanner />
     
-    <!-- Enhanced Animated Background -->
-    <div class="fixed inset-0 z-0">
-      <div class="animated-bg">
-        <div class="particles">
-          <div v-for="i in 25" :key="i" class="particle" :style="{ '--delay': i * 0.4 + 's' }"></div>
-        </div>
-        <div class="bg-gradient-orb orb-1"></div>
-        <div class="bg-gradient-orb orb-2"></div>
-        <div class="bg-gradient-orb orb-3"></div>
-        <div class="floating-calendar-elements">
-          <div v-for="i in 8" :key="'calendar-element-' + i" class="floating-element" :style="{ '--delay': i * 1.2 + 's', '--size': (15 + Math.random() * 30) + 'px' }"></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Main Container -->
     <div class="relative z-10 w-full max-w-2xl mx-auto pt-32 px-5 pb-20">
       <!-- Header Section -->

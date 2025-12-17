@@ -1,24 +1,8 @@
 <template>
-  <div class="min-h-screen bg-black overflow-hidden text-white select-none relative">
+  <div class="min-h-screen overflow-hidden text-white select-none relative">
     <UniversalBanner />
     
-    <!-- Enhanced Animated Background with Particles and Liquid Elements -->
-    <div class="fixed inset-0 z-0">
-      <div class="animated-bg">
-        <div class="particles">
-          <div v-for="i in 25" :key="i" class="particle" :style="{ '--delay': i * 0.4 + 's' }"></div>
-        </div>
-        <div class="floating-elements">
-          <div v-for="i in 15" :key="'element-' + i" class="floating-element" :style="{ '--delay': i * 0.7 + 's', '--size': (15 + Math.random() * 30) + 'px' }"></div>
-        </div>
-        <div class="bg-gradient-orb orb-1"></div>
-        <div class="bg-gradient-orb orb-2"></div>
-        <div class="bg-gradient-orb orb-3"></div>
-        <div class="liquid-bubbles">
-          <div v-for="i in 8" :key="'bubble-' + i" class="liquid-bubble" :style="{ '--delay': i * 1.2 + 's', '--size': (20 + Math.random() * 40) + 'px' }"></div>
-        </div>
-      </div>
-    </div>
+    <!-- Main Container -->
 
     <!-- Main Container -->
     <div class="relative z-10 w-full max-w-4xl mx-auto pt-32 px-5 pb-20">
@@ -306,14 +290,7 @@ export default {
 </script>
 
 <style scoped>
-/* Animated Background */
-.animated-bg {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  overflow: hidden;
-}
+
 
 .particles {
   position: absolute;

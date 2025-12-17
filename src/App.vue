@@ -1,26 +1,47 @@
 <!-- src/App.vue -->
 <template>
-  <div id="app" class="min-h-screen bg-black text-white">
-    <!-- Animated Grid Background -->
-    <div class="fixed inset-0 z-0 opacity-20">
-      <div class="bg-grid-pattern animate-gridMove"></div>
+  <div id="app" class="min-h-screen bg-gray-900 text-white font-sans antialiased selection:bg-blue-500/20">
+    <!-- Night Village Background -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gradient-to-b from-gray-900 via-[#0B1026] to-[#0B1026]">
+      <!-- Stars Layer -->
+      <div class="stars absolute inset-0 opacity-80"></div>
+      <div class="stars2 absolute inset-0 opacity-60"></div>
+      
+      <!-- Moon -->
+      <div class="absolute top-10 right-10 w-24 h-24 md:w-32 md:h-32 opacity-90 drop-shadow-[0_0_15px_rgba(255,255,200,0.3)] animate-float-slow">
+        <img src="@/assets/moon.png" alt="Moon" class="w-full h-full object-contain mix-blend-screen" />
+      </div>
+
+      <!-- Village Silhouette -->
+      <div class="absolute bottom-0 left-0 w-[100vw] h-[100vh]">
+        <img src="@/assets/night-village.png" alt="Night Village" class="w-full h-full object-cover object-bottom opacity-90" />
+      </div>
+      
+      <!-- Gradient Overlay for smooth blending -->
+      <div class="absolute inset-0 bg-gradient-to-t from-gray-900/50 via-transparent to-transparent z-20"></div>
     </div>
 
-    <!-- Main Content with proper top padding for UniversalBanner -->
-    <main class="relative z-10 pt-5">
-      <router-view @login="onLogin" />
+    <!-- Main Content -->
+    <main class="relative z-10 pb-20 md:pb-0">
+      <transition name="fade" mode="out-in">
+        <router-view @login="onLogin" />
+      </transition>
     </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <BottomNav class="md:hidden" />
   </div>
 </template>
 
 <script>
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './services/firebase';
+import { auth, db } from './services/firebase';
 import { addDoc, collection } from 'firebase/firestore';
-import { db } from './services/firebase';
+import BottomNav from './components/BottomNav.vue';
 
 export default {
   name: 'AppRoot',
+  components: { BottomNav },
   data() {
     return {
       user: null
@@ -90,28 +111,60 @@ export default {
 }
 </script>
 
-<style scoped>
-/* Grid Pattern Background */
-.bg-grid-pattern {
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 60px 60px;
+<style>
+/* Global Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
-@keyframes gridMove {
-  0% { background-position: 0 0; }
-  100% { background-position: 60px 60px; }
+/* Starry Night Animations */
+.stars {
+  background-image: 
+    radial-gradient(1px 1px at 20px 30px, #eee, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 50px 160px, #ddd, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 130px 80px, #fff, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 160px 120px, #ddd, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: twinkle 5s infinite linear;
 }
 
-.animate-gridMove {
-  animation: gridMove 60s linear infinite;
+.stars2 {
+  background-image: 
+    radial-gradient(2px 2px at 100px 150px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 200px 50px, #fff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 300px 100px, #eee, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 300px 300px;
+  animation: moveStars 100s linear infinite;
 }
 
-/* Adjust spacing for header and title */
-#app main {
-  padding-top: 20px; /* Ensure consistent top padding */
+@keyframes twinkle {
+  0% { opacity: 0.8; }
+  50% { opacity: 0.5; }
+  100% { opacity: 0.8; }
 }
+
+@keyframes moveStars {
+  from { transform: translateY(0); }
+  to { transform: translateY(-300px); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
 </style>
 
 {

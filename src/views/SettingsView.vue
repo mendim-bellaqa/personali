@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen bg-black overflow-hidden flex items-start justify-center p-5 text-white">
+  <div class="relative min-h-screen overflow-hidden flex items-start justify-center p-5 text-white">
     <UniversalBanner />
 
     <main class="relative z-10 w-full max-w-3xl mx-auto mt-32">

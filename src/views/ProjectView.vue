@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-black overflow-hidden flex items-center justify-center p-5 text-white select-none relative">
+  <div class="min-h-screen overflow-hidden flex items-center justify-center p-5 text-white select-none relative">
     <!-- Universal Banner -->
     <UniversalBanner />
      
@@ -740,14 +740,6 @@ export default {
 </script>
 
 <style scoped>
-/* Animated Background */
-.animated-bg {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
-  overflow: hidden;
-}
 
 .particles {
   position: absolute;
