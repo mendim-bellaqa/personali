@@ -39,24 +39,27 @@
             </div>
           </div>
 
-          <!-- Plan and Deadline on one row -->
-          <div class="form-row form-row-split">
-            <div class="split-half plan-field">
+          <!-- Plan (full width) -->
+          <div class="form-row">
+            <div class="input-group full-width">
               <select v-model="form.plan" class="form-select liquid-glass-input">
                 <option value="A">Plan A</option>
                 <option value="B">Plan B</option>
                 <option value="C">Plan C</option>
               </select>
             </div>
+          </div>
 
-            <div class="split-half date-field">
+          <!-- Deadline (full width) -->
+          <div class="form-row">
+            <div class="input-group full-width">
               <div class="date-wrapper">
                 <input
                   type="date"
                   v-model="form.deadline"
                   class="form-input liquid-glass-input"
                 />
-                <span v-if="!form.deadline" class="date-placeholder"></span>
+                <span v-if="!form.deadline" class="date-placeholder">Due Date</span>
               </div>
             </div>
           </div>
@@ -306,10 +309,6 @@ export default {
         }))
         .filter(task => !task.archived)
         .sort((a, b) => {
-          // Sort by newest first (newest tasks at top)
-          if (a.createdAt && b.createdAt) {
-            return new Date(b.createdAt) - new Date(a.createdAt);
-          }
           return (a.order || 0) - (b.order || 0);
         });
       });

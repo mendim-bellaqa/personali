@@ -38,7 +38,7 @@
           :key="card.id"
           :to="card.link"
           :style="{ animationDelay: `${index * 0.1}s` }"
-          class="snap-center shrink-0 w-[85vw] max-w-[340px] md:w-full group relative animate-fade-in-up"
+          class="snap-center shrink-0 w-[60vw] max-w-[240px] md:w-full group relative animate-fade-in-up"
         >
           <!-- Card Container -->
           <div class="liquid-card relative h-[420px] rounded-3xl overflow-hidden transition-all duration-500 group-hover:scale-[1.02]">
