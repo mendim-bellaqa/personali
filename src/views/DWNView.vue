@@ -1,98 +1,102 @@
-<!-- C:\laragon\www\pass\src\views\DWNView.vue -->
 <template>
-  <div class="relative min-h-screen overflow-hidden">
-    <UniversalBanner />
-    
-    <!-- Main Container -->
-    <div class="relative z-10 w-full max-w-2xl mx-auto pt-32 px-5 pb-20">
-      <!-- Header Section -->
-      <div class="text-center mb-12">
-        <div class="flex items-center justify-center gap-4 mb-6">
-          <div class="calendar-icon">
-            <svg class="w-12 h-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-            </svg>
-          </div>
-          <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            CALENDAR
-          </h1>
-        </div>
-        <p class="text-gray-300 text-lg">Plan your important moments</p>
+  <div class="relative w-full h-full min-h-screen overflow-hidden">
+    <!-- Universal Banner -->
+    <div class="relative z-50 w-full mb-8">
+      <UniversalBanner />
+    </div>
+
+    <!-- Main Content with Parallax Float -->
+    <main class="relative z-10 w-full max-w-6xl mx-auto px-4 pb-20 pt-4" :style="contentParallaxStyle">
+      
+      <!-- Header -->
+      <div class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 tracking-tighter mb-2 glitch-hover" data-text="CHRONO_SYNC">
+          CHRONO_SYNC
+        </h1>
+        <p class="text-xs text-cyan-300/60 uppercase tracking-widest font-mono">Temporal Alignment • 2026</p>
       </div>
 
-      <!-- Calendar Container -->
-      <div class="calendar-container liquid-glass-card">
-        <div class="calendar-content">
-          <!-- Month Navigation -->
-          <div class="calendar-header">
-            <button @click="previousMonth" class="nav-btn">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h2 class="text-2xl font-bold text-white">{{ monthName }} {{ year }}</h2>
-            <button @click="nextMonth" class="nav-btn">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Weekday Headers -->
-          <div class="weekday-grid">
-            <div v-for="day in weekdays" :key="day" class="weekday-header">
-              {{ day }}
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- CALENDAR CONTROL & INFO (Left Stick) -->
+        <div class="lg:col-span-4 space-y-6">
+          
+          <!-- Month/Year Control -->
+          <div class="neo-card p-6 text-center">
+            <div class="flex items-center justify-between mb-4">
+              <button @click="changeMonth(-1)" class="p-2 hover:text-cyan-400 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <h2 class="text-2xl font-bold text-white font-mono">{{ monthName }} <span class="text-cyan-500">{{ year }}</span></h2>
+              <button @click="changeMonth(1)" class="p-2 hover:text-cyan-400 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono text-gray-400">
+              <div class="p-2 border border-white/10 rounded">Selected: <span class="text-white">{{ selectedDays.size }}</span></div>
+              <button @click="resetSelection" class="p-2 border border-red-500/30 text-red-400 rounded hover:bg-red-500/10 transition-colors">RESET_DATA</button>
             </div>
           </div>
 
-          <!-- Calendar Grid -->
-          <div class="calendar-grid">
-            <!-- Blank spaces for days before month starts -->
-            <div v-for="blank in firstDayOfWeek" :key="'blank-' + blank" class="calendar-cell empty"></div>
+          <!-- Instructions / Stats -->
+          <div class="neo-card p-6">
+            <h3 class="text-sm font-bold text-cyan-400 mb-3 uppercase tracking-wider">Directives</h3>
+            <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+              Select dates to mark critical temporal milestones. Data is persisted locally in your neural link (localStorage).
+            </p>
+            <div class="h-1 w-full bg-gray-800 rounded overflow-hidden">
+               <div class="h-full bg-cyan-500 transition-all duration-500" :style="{ width: Math.min((selectedDays.size / 30) * 100, 100) + '%' }"></div>
+            </div>
+            <div class="flex justify-between mt-2 text-[10px] text-gray-500 font-mono">
+               <span>CAPACITY</span>
+               <span>{{ Math.round(Math.min((selectedDays.size / 30) * 100, 100)) }}%</span>
+            </div>
+          </div>
 
-            <!-- Days of the month -->
-            <div
-              v-for="day in daysInMonth"
-              :key="day"
-              @click="toggleSelect(day)"
-              class="calendar-day"
-              :class="getDayClasses(day)"
-            >
-              <span class="day-number">{{ day }}</span>
-              <div v-if="selectedDays.has(day)" class="selected-indicator">
-                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
+        </div>
+
+        <!-- CALENDAR GRID (Main) -->
+        <div class="lg:col-span-8">
+          <div class="neo-card p-6 min-h-[500px]">
+            
+            <!-- Weekday Headers -->
+            <div class="grid grid-cols-7 mb-4 border-b border-white/5 pb-2">
+              <div v-for="day in weekdays" :key="day" class="text-center text-xs font-bold text-gray-500 uppercase tracking-wider py-2">
+                {{ day }}
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Controls Section -->
-      <div class="controls-container liquid-glass-card mt-8">
-        <div class="controls-content">
-          <div class="selected-info">
-            <span class="text-gray-300">Selected dates: </span>
-            <span class="selected-count">{{ selectedDays.size }}</span>
-          </div>
-          <div class="control-buttons">
-            <button @click="resetSelection" class="control-btn reset">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-              </svg>
-              Reset
-            </button>
-            <router-link to="/" class="control-btn back">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back
-            </router-link>
+            <!-- Days Grid -->
+            <div class="grid grid-cols-7 gap-2 md:gap-4">
+              <!-- Empty slots for start of month -->
+              <div v-for="blank in firstDayOfWeek" :key="'blank-' + blank" class="aspect-square"></div>
+
+              <!-- Actual Days -->
+              <div
+                v-for="day in daysInMonth"
+                :key="day"
+                @click="toggleSelect(day)"
+                class="relative aspect-square rounded-xl border flex flex-col items-center justify-center cursor-pointer transition-all duration-300 group"
+                :class="getDayClasses(day)"
+              >
+                <span class="text-sm md:text-lg font-mono z-10 relative">{{ day }}</span>
+                
+                <!-- Selection Glow -->
+                <div v-if="selectedDays.has(day)" class="absolute inset-0 bg-cyan-500/20 blur-md rounded-xl"></div>
+                
+                <!-- Hover Effect -->
+                <div class="absolute inset-0 border-2 border-cyan-400/0 group-hover:border-cyan-400/50 rounded-xl transition-all duration-300"></div>
+                
+                <!-- Tiny indicator for today -->
+                <div v-if="isToday(day)" class="absolute top-1 right-1 w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+
           </div>
         </div>
+
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -102,109 +106,113 @@ import UniversalBanner from '@/components/UniversalBanner.vue';
 export default {
   name: 'DWNView',
   components: { UniversalBanner },
+  props: {
+    mouseX: { type: Number, default: 0 },
+    mouseY: { type: Number, default: 0 }
+  },
   data() {
-    const today = new Date();
+    const now = new Date();
     return {
-      year: today.getFullYear(),
-      month: today.getMonth(), // 0-based
+      year: now.getFullYear(),
+      month: now.getMonth(),
       selectedDays: new Set(),
       weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     };
   },
-  watch: {
-    // Watch for changes to automatically save to localStorage
-    selectedDays: {
-      handler(newDaySet) {
-        // Convert Set to Array before saving, as JSON can't handle Sets
-        const arrayToSave = Array.from(newDaySet);
-        localStorage.setItem('dwnSelectedDays', JSON.stringify(arrayToSave));
-      },
-      deep: true,
-    }
-  },
   computed: {
+    monthName() {
+      return new Date(this.year, this.month).toLocaleString('default', { month: 'long' });
+    },
     daysInMonth() {
       return new Date(this.year, this.month + 1, 0).getDate();
     },
     firstDayOfWeek() {
       return new Date(this.year, this.month, 1).getDay();
     },
-    monthName() {
-      return new Date(this.year, this.month).toLocaleString('default', { month: 'long' });
-    },
-  },
-  methods: {
-    toggleSelect(day) {
-      // We need a temporary copy to modify, because Vue 2 has issues
-      // detecting changes within a Set directly.
-      const newSelectedDays = new Set(this.selectedDays);
-      if (newSelectedDays.has(day)) {
-        newSelectedDays.delete(day);
-      } else {
-        newSelectedDays.add(day);
-      }
-      // Assign the new set back to the data property to trigger reactivity
-      this.selectedDays = newSelectedDays;
-    },
-    // Get the correct CSS classes based on selection
-    getDayClasses(day) {
-      if (this.selectedDays.has(day)) {
-        // Selected state: Blue highlighting
-        return 'day-selected bg-blue-500 text-white border-blue-400 shadow-lg';
-      } else {
-        // Unselected state: Dark 3D button
-        return 'day-unselected text-gray-300 hover:bg-gray-700';
-      }
-    },
-    // Reset selections and save
-    resetSelection() {
-      this.selectedDays = new Set();
-    },
-  },
-  // Load data from localStorage when the component is created
-  created() {
-    const savedDays = localStorage.getItem('dwnSelectedDays');
-    if (savedDays) {
-      // Parse the saved JSON array and convert it back into a Set
-      this.selectedDays = new Set(JSON.parse(savedDays));
+    contentParallaxStyle() {
+      if (typeof window !== 'undefined' && window.innerWidth < 768) return {};
+      const x = this.mouseX * 0.03 * 30;
+      const y = this.mouseY * 0.03 * 30;
+      return { transform: `translate(${x}px, ${y}px)` };
     }
   },
+  watch: {
+    selectedDays: {
+      handler(newVal) {
+        localStorage.setItem('dwnSelectedDays', JSON.stringify(Array.from(newVal)));
+      },
+      deep: true
+    }
+  },
+  mounted() {
+    const saved = localStorage.getItem('dwnSelectedDays');
+    if (saved) {
+      try {
+        this.selectedDays = new Set(JSON.parse(saved));
+      } catch (e) {
+        console.error('Corrupt calendar data', e);
+      }
+    }
+  },
+  methods: {
+    changeMonth(delta) {
+      this.month += delta;
+      if (this.month > 11) {
+        this.month = 0;
+        this.year++;
+      } else if (this.month < 0) {
+        this.month = 11;
+        this.year--;
+      }
+    },
+    toggleSelect(day) {
+      const newSet = new Set(this.selectedDays);
+      if (newSet.has(day)) newSet.delete(day);
+      else newSet.add(day);
+      this.selectedDays = newSet;
+    },
+    resetSelection() {
+      if (confirm('RESET ALL TEMPORAL MARKERS?')) {
+        this.selectedDays = new Set();
+      }
+    },
+    isToday(day) {
+      const today = new Date();
+      return today.getDate() === day && 
+             today.getMonth() === this.month && 
+             today.getFullYear() === this.year;
+    },
+    getDayClasses(day) {
+      if (this.selectedDays.has(day)) {
+        return 'bg-cyan-600/30 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.3)]';
+      }
+      return 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white';
+    }
+  }
 };
 </script>
 
 <style scoped>
-/* These styles are from your other pages for consistency */
-.bg-grid-pattern {
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 2px, transparent 2px);
-  background-size: 60px 60px;
-}
-@keyframes gridMove {
-  0% { background-position: 0 0; }
-  100% { background-position: 60px 60px; }
-}
-.animate-gridMove {
-  animation: gridMove 30s linear infinite;
+/* Reusing Neo-Glass styles from TskView for consistency */
+.neo-card {
+  background: rgba(10, 15, 30, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
 }
 
-/* Calendar Day Styles */
-.day-selected {
-  background: rgba(59, 130, 246, 0.8);
-  border: 2px solid rgba(59, 130, 246, 0.6);
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-  transform: scale(1.1);
+.glitch-hover:hover {
+  animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+  color: #06b6d4;
 }
 
-.day-unselected {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-.day-unselected:hover {
-  background: rgba(107, 114, 128, 0.3);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
 }
 </style>

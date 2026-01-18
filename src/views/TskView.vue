@@ -1,30 +1,27 @@
 <template>
-  <div class="cyber-container" @mousemove="handleMouseMove">
-    <!-- Parallax Background Layers -->
-    <div class="parallax-layer stars" :style="parallaxStyle(0.1)"></div>
-    <div class="parallax-layer grid-horizon"></div>
-    <div class="parallax-layer nebula-glow" :style="parallaxStyle(0.2)"></div>
-    
-    <!-- Universal Banner (Assume it fits or needs simple wrapper) -->
+  <div class="cyber-container relative w-full h-full"> 
+    <!-- Local background layers removed; utilizing global App background -->
+
+    <!-- Universal Banner -->
     <div class="relative z-50 w-full mb-8">
       <UniversalBanner />
     </div>
 
-    <main class="content-wrapper relative z-10 w-full max-w-5xl mx-auto px-4" :style="parallaxStyle(0.05)">
+    <!-- Main Content Wrapper with Prop-driven Parallax -->
+    <main class="content-wrapper relative z-10 w-full max-w-5xl mx-auto px-4 pb-24" :style="contentParallaxStyle">
       
       <!-- Main Layout: Split Columns for Desktop -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         
-        <!-- RIGHT COLUMN (Form) - Moved to left in visual hierarchy or keep standard order? 
-             Let's put Input on Left (4 cols) and List on Right (8 cols) for better workflow. -->
-        <div class="lg:col-span-4 space-y-6">
+        <!-- RIGHT COLUMN (Form) -->
+        <div class="lg:col-span-4 space-y-4 lg:space-y-6">
           
           <!-- Header Card -->
-          <div class="neo-card p-6 text-center group">
-            <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 tracking-tighter mb-2 glitch-hover" data-text="TASK_FORCE">
+          <div class="neo-card p-4 lg:p-6 text-center group">
+            <h1 class="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 tracking-tighter mb-1 lg:mb-2 glitch-hover" data-text="TASK_FORCE">
               TASK_FORCE
             </h1>
-            <p class="text-xs text-cyan-300/60 uppercase tracking-widest">System Ready • 2026</p>
+            <p class="text-[10px] md:text-xs text-cyan-300/60 uppercase tracking-widest">System Ready • 2026</p>
           </div>
 
           <!-- Add Task Form -->
@@ -108,8 +105,6 @@
                        <span class="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400 font-mono border border-white/10">{{ tasks.length }}</span>
                     </h3>
                  </div>
-                 
-                 <!-- Filter/Sort Controls could go here -->
               </div>
 
               <!-- Task List Container -->
@@ -311,6 +306,16 @@ export default {
   components: {
     UniversalBanner
   },
+  props: {
+    mouseX: {
+      type: Number,
+      default: 0
+    },
+    mouseY: {
+      type: Number,
+      default: 0
+    }
+  },
   data() {
     return {
       tasks: [],
@@ -320,8 +325,6 @@ export default {
       showDeleteConfirm: false,
       pendingDeleteId: null,
       expandedTaskIds: [],
-      mouseX: 0,
-      mouseY: 0,
       form: {
         title: '',
         plan: 'A',
@@ -333,28 +336,24 @@ export default {
   computed: {
     totalMiningPoints() {
       return this.tasks.reduce((sum, task) => sum + (task.miningPoints || 0), 0);
+    },
+    contentParallaxStyle() {
+      if (typeof window !== 'undefined' && window.innerWidth < 768) return {};
+      // Subtle float for content container based on mouse
+      const x = this.mouseX * 0.05 * 50;
+      const y = this.mouseY * 0.05 * 50;
+      return {
+        transform: `translate(${x}px, ${y}px)`
+      };
     }
   },
   mounted() {
     this.loadTasks();
-    // Initialize stars random positions if needed, but CSS is cleaner for performance
   },
   methods: {
-    handleMouseMove(e) {
-      // Calculate normalized mouse position (-1 to 1)
-      this.mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-      this.mouseY = (e.clientY / window.innerHeight) * 2 - 1;
-    },
-    parallaxStyle(depth) {
-      // Move layers opposite to mouse direction
-      const x = this.mouseX * depth * 50; // 50px max movement
-      const y = this.mouseY * depth * 50;
-      return {
-        transform: `translate(${x}px, ${y}px)`
-      };
-    },
     loadTasks() {
       if (!auth.currentUser) return;
+      
       const tasksQuery = query(
         collection(db, 'tasks'),
         where('userId', '==', auth.currentUser.uid)
@@ -530,10 +529,10 @@ export default {
 /* MAIN CONTAINER & BACKGROUND */
 .cyber-container {
   min-height: 100vh;
-  background-color: #050510;
+  /* background-color: #050510; removed to show global App background */
   position: relative;
   overflow: hidden;
-  font-family: 'Inter', sans-serif; /* Ensure font is available or fallback */
+  font-family: 'Inter', sans-serif;
   color: #e2e8f0;
 }
 

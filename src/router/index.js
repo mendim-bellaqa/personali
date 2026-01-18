@@ -1,24 +1,15 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import PryView from '../views/PryView.vue'
-import HomeView from '../views/HomeView.vue'
-import ProjectView from '../views/ProjectView.vue'
-import MedView from '../views/MedView.vue'
-import DWNView from '../views/DWNView.vue'
-import LoginView from '../views/LoginView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import ArchiveView from '../views/ArchiveView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import SettingsView from '../views/SettingsView.vue'
-import { auth } from '../services/firebase';
+import TskView from '../views/TskView.vue'
+// import PryView from '../views/PryView.vue' // Deprecated
 
-Vue.use(VueRouter)
+// ... imports ...
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/login', name: 'Login', component: LoginView },
   { path: '/register', name: 'Register', component: RegisterView },
-  { path: '/tsk', name: 'Tasks', component: PryView, meta: { requiresAuth: true } },
+  { path: '/tsk', name: 'Tasks', component: TskView, meta: { requiresAuth: true } },
   { path: '/project', name: 'Projects', component: ProjectView, meta: { requiresAuth: true } },
   { path: '/profile', name: 'Profile', component: ProfileView, meta: { requiresAuth: true } },
   { path: '/settings', name: 'Settings', component: SettingsView, meta: { requiresAuth: true } },
@@ -41,12 +32,12 @@ router.beforeEach((to, from, next) => {
     if (to.name === 'Register' && to.query.registered === 'true') {
       return next(); // Allow redirect back to register after registration
     }
-    
+
     // Allow login page with query parameters (like registered=true)
     if (to.name === 'Login' && to.query.registered === 'true') {
       return next(); // Allow redirect to login with registration success
     }
-    
+
     // Redirect authenticated users to home or intended redirect
     const redirect = to.query.redirect || '/';
     return next(redirect);
@@ -58,11 +49,11 @@ router.beforeEach((to, from, next) => {
   // Check Firebase authentication
   try {
     const user = auth.currentUser;
-    
+
     if (!user) {
       return next({ name: 'Login', query: { redirect: to.fullPath } })
     }
-    
+
     return next()
   } catch (err) {
     console.error('Auth check failed:', err);
