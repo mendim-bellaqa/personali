@@ -1,10 +1,9 @@
 <template>
-  <div id="app" class="min-h-screen font-sans antialiased selection:bg-cyan-500/30" @mousemove="handleMouseMove">
-    <!-- GLOBAL PARALLAX BACKGROUND -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#050510]">
-       <div class="parallax-layer stars" :style="parallaxStyle(0.02)"></div>
-       <div class="parallax-layer grid-horizon"></div>
-       <div class="parallax-layer nebula-glow" :style="parallaxStyle(0.05)"></div>
+  <div id="app" class="min-h-screen font-sans antialiased selection:bg-cyan-500/30">
+    <!-- GLOBAL BACKGROUND -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+       <img src="@/assets/background.jpeg" class="w-full h-full object-cover opacity-60" alt="background" />
+       <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
     </div>
 
     <!-- Main Content -->
@@ -21,8 +20,7 @@
 
 <script>
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from './services/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { auth } from './services/firebase';
 import BottomNav from './components/BottomNav.vue';
 
 export default {
@@ -43,26 +41,18 @@ export default {
         this.$router.replace(redirect);
       }
     });
+    window.addEventListener('mousemove', this.handleMouseMove);
+  },
+  beforeUnmount() {
+    window.removeEventListener('mousemove', this.handleMouseMove);
   },
   methods: {
     handleMouseMove(e) {
-      // Calculate normalized mouse position (-1 to 1) for global usage
-      this.mouseX = (e.clientX / window.innerWidth) * 2 - 1;
-      this.mouseY = (e.clientY / window.innerHeight) * 2 - 1;
-    },
-    parallaxStyle(depth) {
-      if (window.innerWidth < 768) return {}; // Disable heavy parallax moving on mobile
-      const x = this.mouseX * depth * 30; 
-      const y = this.mouseY * depth * 30;
-      return {
-        transform: `translate(${x}px, ${y}px)`
-      };
+      this.mouseX = e.clientX;
+      this.mouseY = e.clientY;
     },
     onLogin(user) {
       this.user = user;
-    },
-    async logout() {
-      // ... existing logout logic if needed
     }
   }
 }
@@ -70,13 +60,14 @@ export default {
 
 <style>
 /* Global Resets & Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap');
 
 body {
   margin: 0;
   background-color: #050510;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   overflow-x: hidden;
+  color: #fff;
 }
 
 /* Global Transitions */
@@ -89,71 +80,14 @@ body {
   opacity: 0;
 }
 
-/* --- CYBER HORIZON BACKGROUND STYLES --- */
-.parallax-layer {
-  position: absolute;
-  top: -10%;
-  left: -10%;
-  width: 120%;
-  height: 120%;
-  pointer-events: none;
-  transition: transform 0.1s linear;
-  will-change: transform;
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-/* STARS */
-.stars {
-  background-image: 
-    radial-gradient(1.5px 1.5px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1.5px 1.5px at 40px 70px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(1px 1px at 90px 40px, #ffffff, rgba(0,0,0,0)),
-    radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0));
-  background-size: 300px 300px;
-  opacity: 0.4;
-}
-
-/* GRID HORIZON */
-.grid-horizon {
-  background: 
-    linear-gradient(transparent 0%, rgba(0, 243, 255, 0.05) 1%, transparent 2%),
-    linear-gradient(90deg, transparent 0%, rgba(0, 243, 255, 0.05) 1%, transparent 2%);
-  background-size: 60px 60px;
-  transform: perspective(600px) rotateX(60deg) translateY(0) translateZ(-200px);
-  transform-origin: center 80%;
-  opacity: 0.25;
-  bottom: -40%;
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  animation: gridMove 15s linear infinite;
-  mask-image: linear-gradient(to bottom, transparent, black 40%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 40%);
-}
-
-@keyframes gridMove {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 600px; }
-}
-
-/* NEBULA GLOW */
-.nebula-glow {
-  background: 
-    radial-gradient(circle at 20% 30%, rgba(157, 0, 255, 0.1), transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(0, 243, 255, 0.08), transparent 50%);
-  filter: blur(60px);
-  opacity: 0.8;
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 </style>
-
-{
-  "rules": {
-    "tasks": {
-      ".read": "auth != null",
-      ".write": "auth != null && request.auth.uid != null",
-      "$taskId": {
-        ".read": "auth != null && auth.uid == resource.data.userId",
-        ".write": "auth != null && auth.uid == request.resource.data.userId"
-      }
-    }
-  }
-}

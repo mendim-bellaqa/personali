@@ -1,9 +1,20 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import TskView from '../views/TskView.vue'
-// import PryView from '../views/PryView.vue' // Deprecated
+import { auth } from '../services/firebase'
 
-// ... imports ...
+// Import all views
+import HomeView from '../views/HomeView.vue'
+import LoginView from '../views/LoginView.vue'
+import RegisterView from '../views/RegisterView.vue'
+import TskView from '../views/TskView.vue'
+import ProjectView from '../views/ProjectView.vue'
+import ProfileView from '../views/ProfileView.vue'
+import SettingsView from '../views/SettingsView.vue'
+import MedView from '../views/MedView.vue'
+import DWNView from '../views/DWNView.vue'
+import ArchiveView from '../views/ArchiveView.vue'
+
+Vue.use(VueRouter)
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
@@ -27,20 +38,23 @@ const router = new VueRouter({
 // Global navigation guard
 router.beforeEach((to, from, next) => {
   // Check if user is trying to access auth pages while logged in
-  if ((to.name === 'Login' || to.name === 'Register') && auth.currentUser) {
-    // Special case: Allow registration completion redirect
-    if (to.name === 'Register' && to.query.registered === 'true') {
-      return next(); // Allow redirect back to register after registration
-    }
+  if ((to.name === 'Login' || to.name === 'Register')) {
+    const user = auth.currentUser;
+    if (user) {
+      // Special case: Allow registration completion redirect
+      if (to.name === 'Register' && to.query.registered === 'true') {
+        return next();
+      }
 
-    // Allow login page with query parameters (like registered=true)
-    if (to.name === 'Login' && to.query.registered === 'true') {
-      return next(); // Allow redirect to login with registration success
-    }
+      // Allow login page with query parameters
+      if (to.name === 'Login' && to.query.registered === 'true') {
+        return next();
+      }
 
-    // Redirect authenticated users to home or intended redirect
-    const redirect = to.query.redirect || '/';
-    return next(redirect);
+      // Redirect authenticated users to home or intended redirect
+      const redirect = to.query.redirect || '/';
+      return next(redirect);
+    }
   }
 
   // Check if route requires authentication

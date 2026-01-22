@@ -3,23 +3,7 @@
     <!-- Universal Banner -->
     <UniversalBanner />
     
-    <!-- Animated Background with Magnetic Particles -->
-    <div class="fixed inset-0 z-0">
-      <div class="animated-bg">
-        <div class="magnetic-particles" ref="particleContainer">
-          <div 
-            v-for="i in magneticParticlesCount" 
-            :key="i" 
-            class="magnetic-particle" 
-            :data-id="i"
-            :style="{ '--delay': i * 0.5 + 's' }"
-          ></div>
-        </div>
-        <div class="bg-gradient-orb orb-1"></div>
-        <div class="bg-gradient-orb orb-2"></div>
-        <div class="bg-gradient-orb orb-3"></div>
-      </div>
-    </div>
+    <!-- Local background removed to show global App background -->
 
   <!-- Main Content Container -->
   <main class="relative z-10 w-full max-w-4xl mx-auto main-center">
