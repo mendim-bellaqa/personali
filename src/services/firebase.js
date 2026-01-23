@@ -18,14 +18,17 @@ const firebaseConfig = {
   measurementId: "G-WH0RQ7RR5M"
 };
 
+import { getStorage } from "firebase/storage";
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 console.log('Firebase app initialized:', app);
 console.log('Firebase Auth initialized:', auth);
 console.log('Firebase Firestore initialized:', db);
 
-export { app, analytics, auth, db };
+export { app, analytics, auth, db, storage };
