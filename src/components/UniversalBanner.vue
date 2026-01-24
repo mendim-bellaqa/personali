@@ -413,7 +413,7 @@ export default {
   }
   
   .banner-logo {
-    font-size: 20px;
+    font-size: 18px;
   }
   
   .nav-items {
@@ -460,12 +460,13 @@ export default {
   }
   
   .banner-logo {
-    font-size: 18px;
+    font-size: 16px;
   }
   
   /* Refine specific mobile nav */
   .nav-menu {
-    margin: 0 4px;
+    margin: 0 2px;
+    max-width: calc(100% - 120px); /* Leave room for logo and profile */
   }
 
   .nav-items {

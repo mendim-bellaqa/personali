@@ -12,6 +12,38 @@
       </p>
     </header>
 
+    <!-- Year Progress Widget -->
+    <div class="relative z-10 w-full max-w-4xl mx-auto mb-16 px-6">
+      <div class="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
+        <!-- Widget Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-white font-bold text-lg mb-1">Year Progress</h3>
+            <p class="text-white/40 text-sm">{{ currentYear }} • Day {{ dayOfYear }} of {{ totalDaysInYear }}</p>
+          </div>
+          <div class="text-right">
+            <div class="text-3xl font-black text-white mb-1">{{ progressPercent }}%</div>
+            <div class="text-white/40 text-xs">{{ daysRemaining }} days left</div>
+          </div>
+        </div>
+
+        <!-- Dots Grid -->
+        <div class="grid gap-[3px]" :style="{ gridTemplateColumns: `repeat(${dotsPerRow}, 1fr)` }">
+          <div
+            v-for="day in totalDaysInYear"
+            :key="day"
+            :class="[
+              'aspect-square rounded-sm transition-all duration-300 cursor-pointer',
+              day <= dayOfYear 
+                ? 'bg-gradient-to-br from-blue-400 to-purple-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] hover:scale-125' 
+                : 'bg-white/10 hover:bg-white/20 hover:scale-110'
+            ]"
+            :title="`Day ${day}`"
+          ></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Navigation Boxes -->
     <main class="relative z-10 w-full max-w-6xl mx-auto">
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 px-4">
@@ -72,8 +104,49 @@ export default {
         { id: 2, title: 'Projects', link: '/pry' },
         { id: 3, title: 'Focus', link: '/med' },
         { id: 4, title: 'Calendar', link: '/dwn' }
-      ]
+      ],
+      windowWidth: window.innerWidth
     };
+  },
+  computed: {
+    currentYear() {
+      return new Date().getFullYear();
+    },
+    totalDaysInYear() {
+      // Check if it's a leap year
+      const year = this.currentYear;
+      return ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+    },
+    dayOfYear() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 0);
+      const diff = now - start;
+      const oneDay = 1000 * 60 * 60 * 24;
+      return Math.floor(diff / oneDay);
+    },
+    progressPercent() {
+      return Math.round((this.dayOfYear / this.totalDaysInYear) * 100);
+    },
+    daysRemaining() {
+      return this.totalDaysInYear - this.dayOfYear;
+    },
+    dotsPerRow() {
+      // Responsive grid: adjust dots per row based on screen width
+      if (this.windowWidth < 640) return 20;  // Mobile
+      if (this.windowWidth < 1024) return 30; // Tablet
+      return 52; // Desktop (approximately 7 rows for 365 days)
+    }
+  },
+  mounted() {
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.handleResize);
+  },
+  methods: {
+    handleResize() {
+      this.windowWidth = window.innerWidth;
+    }
   }
 };
 </script>
