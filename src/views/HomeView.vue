@@ -12,40 +12,8 @@
       </p>
     </header>
 
-    <!-- Year Progress Widget -->
-    <div class="relative z-10 w-full max-w-4xl mx-auto mb-16 px-6">
-      <div class="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-2xl hover:border-white/20 transition-all duration-500">
-        <!-- Widget Header -->
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h3 class="text-white font-bold text-lg mb-1">Year Progress</h3>
-            <p class="text-white/40 text-sm">{{ currentYear }} • Day {{ dayOfYear }} of {{ totalDaysInYear }}</p>
-          </div>
-          <div class="text-right">
-            <div class="text-3xl font-black text-white mb-1">{{ progressPercent }}%</div>
-            <div class="text-white/40 text-xs">{{ daysRemaining }} days left</div>
-          </div>
-        </div>
-
-        <!-- Dots Grid -->
-        <div class="grid gap-[3px]" :style="{ gridTemplateColumns: `repeat(${dotsPerRow}, 1fr)` }">
-          <div
-            v-for="day in totalDaysInYear"
-            :key="day"
-            :class="[
-              'aspect-square rounded-sm transition-all duration-300 cursor-pointer',
-              day <= dayOfYear 
-                ? 'bg-gradient-to-br from-blue-400 to-purple-500 shadow-[0_0_10px_rgba(59,130,246,0.5)] hover:scale-125' 
-                : 'bg-white/10 hover:bg-white/20 hover:scale-110'
-            ]"
-            :title="`Day ${day}`"
-          ></div>
-        </div>
-      </div>
-    </div>
-
     <!-- Navigation Boxes -->
-    <main class="relative z-10 w-full max-w-6xl mx-auto">
+    <main class="relative z-10 w-full max-w-6xl mx-auto mb-16">
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 px-4">
         <router-link
           v-for="(card, index) in cards"
@@ -74,6 +42,38 @@
         </router-link>
       </div>
     </main>
+
+    <!-- Year Progress Widget -->
+    <div class="relative z-10 w-full max-w-4xl mx-auto mb-16 px-6">
+      <div class="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-5 shadow-2xl hover:border-white/20 transition-all duration-500">
+        <!-- Widget Header -->
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-white font-bold text-base mb-0.5">Year Progress</h3>
+            <p class="text-white/40 text-xs">{{ currentYear }} • Day {{ dayOfYear }} of {{ totalDaysInYear }}</p>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-black text-white mb-0.5">{{ progressPercent }}%</div>
+            <div class="text-white/40 text-[10px]">{{ daysRemaining }} days left</div>
+          </div>
+        </div>
+
+        <!-- Dots Grid -->
+        <div class="grid gap-[2px]" :style="{ gridTemplateColumns: `repeat(${dotsPerRow}, 1fr)` }">
+          <div
+            v-for="day in totalDaysInYear"
+            :key="day"
+            :class="[
+              'aspect-square rounded-full transition-all duration-300 cursor-pointer backdrop-blur-sm',
+              day <= dayOfYear 
+                ? 'bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.6),inset_0_0_8px_rgba(255,255,255,0.3)] hover:scale-125 hover:shadow-[0_0_12px_rgba(255,255,255,0.8),inset_0_0_12px_rgba(255,255,255,0.4)]' 
+                : 'bg-white/15 border border-white/20 hover:bg-white/25 hover:scale-110 hover:shadow-[0_0_6px_rgba(255,255,255,0.3)]'
+            ]"
+            :title="`Day ${day}`"
+          ></div>
+        </div>
+      </div>
+    </div>
 
     <!-- Status Indicator -->
     <div class="mt-20 relative z-10 flex items-center gap-3 px-6 py-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-md opacity-60">
