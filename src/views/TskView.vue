@@ -94,7 +94,8 @@
     <!-- TASK FIELD (BIG MOVABLE AREA) -->
     <main 
       ref="field"
-      class="flex-1 relative cursor-crosshair m-2 md:m-4 mb-32 md:mb-24 overflow-hidden touch-none -mt-6 md:-mt-10"
+      class="flex-1 relative cursor-crosshair m-2 md:m-4 mb-32 md:mb-24 overflow-hidden touch-none"
+      style="margin-top: 50px;"
       @mousedown.self="startPan"
       @mousemove="onMouseMove"
       @mouseup="stopInteraction"
