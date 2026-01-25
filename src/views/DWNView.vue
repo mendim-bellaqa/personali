@@ -5,11 +5,16 @@
       <UniversalBanner />
     </div>
 
-    <!-- Main Content with Parallax Float -->
-    <main class="relative z-10 w-full max-w-6xl mx-auto px-4 pb-20 pt-4" :style="contentParallaxStyle">
+    <!-- Main Content with Manual Drag -->
+    <main 
+      ref="draggableContainer"
+      class="relative z-10 w-full max-w-6xl mx-auto px-4 pb-20 pt-20 md:pt-24 cursor-grab active:cursor-grabbing transform will-change-transform" 
+      :style="contentStyle"
+      @mousedown="startDrag"
+    >
       
       <!-- Header -->
-      <div class="text-center mb-10">
+      <div class="text-center mb-16">
         <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 tracking-tighter mb-2 glitch-hover" data-text="CHRONO_SYNC">
           CHRONO_SYNC
         </h1>
@@ -107,8 +112,7 @@ export default {
   name: 'DWNView',
   components: { UniversalBanner },
   props: {
-    mouseX: { type: Number, default: 0 },
-    mouseY: { type: Number, default: 0 }
+    // No props needed
   },
   data() {
     const now = new Date();
@@ -117,6 +121,11 @@ export default {
       month: now.getMonth(),
       selectedDays: new Set(),
       weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      panX: 0,
+      panY: 0,
+      isDragging: false,
+      dragStart: { x: 0, y: 0 },
+      dragOffset: { x: 0, y: 0 }
     };
   },
   computed: {
@@ -129,12 +138,15 @@ export default {
     firstDayOfWeek() {
       return new Date(this.year, this.month, 1).getDay();
     },
-    contentParallaxStyle() {
-      if (typeof window !== 'undefined' && window.innerWidth < 768) return {};
-      const x = this.mouseX * 0.03 * 30;
-      const y = this.mouseY * 0.03 * 30;
-      return { transform: `translate(${x}px, ${y}px)` };
+    contentStyle() {
+      return { 
+        transform: `translate(${this.panX}px, ${this.panY}px)`,
+        transition: this.isDragging ? 'none' : 'transform 0.1s ease-out'
+      };
     }
+  },
+  beforeUnmount() {
+    this.removeDragListeners();
   },
   watch: {
     selectedDays: {
@@ -155,6 +167,32 @@ export default {
     }
   },
   methods: {
+    startDrag(e) {
+      if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return; // Allow button clicks
+      
+      this.isDragging = true;
+      this.dragStart = { x: e.clientX, y: e.clientY };
+      this.dragOffset = { x: this.panX, y: this.panY };
+      
+      window.addEventListener('mousemove', this.onDrag);
+      window.addEventListener('mouseup', this.stopDrag);
+    },
+    onDrag(e) {
+      if (!this.isDragging) return;
+      const dx = e.clientX - this.dragStart.x;
+      const dy = e.clientY - this.dragStart.y;
+      
+      this.panX = this.dragOffset.x + dx;
+      this.panY = this.dragOffset.y + dy;
+    },
+    stopDrag() {
+      this.isDragging = false;
+      this.removeDragListeners();
+    },
+    removeDragListeners() {
+      window.removeEventListener('mousemove', this.onDrag);
+      window.removeEventListener('mouseup', this.stopDrag);
+    },
     changeMonth(delta) {
       this.month += delta;
       if (this.month > 11) {

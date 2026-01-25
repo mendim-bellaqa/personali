@@ -38,32 +38,45 @@
                 class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs md:text-sm outline-none focus:border-white/30 transition-colors resize-none h-20"
               ></textarea>
               
-              <div class="flex flex-wrap gap-4 items-center">
-                <!-- Date Picker -->
-                <div class="flex-1 min-w-[150px]">
-                  <label class="block text-[8px] md:text-[10px] font-black opacity-40 uppercase tracking-widest mb-1">Plan Date</label>
-                  <input 
+              <div class="flex items-center gap-3">
+                <!-- Date Picker (Compact) -->
+                <div class="relative group/date">
+                   <input 
                     type="date" 
                     v-model="form.planDate"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs outline-none focus:border-white/30 transition-colors"
+                    class="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-2 py-2 text-xs outline-none focus:border-white/30 transition-colors uppercase tracking-widest text-white/70"
                   />
                 </div>
 
-                <!-- Media Upload -->
-                <div class="flex-1 min-w-[150px]">
-                  <label class="block text-[8px] md:text-[10px] font-black opacity-40 uppercase tracking-widest mb-1">Attachment</label>
-                  <div class="relative overflow-hidden group/file">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      capture="environment"
-                      @change="handleFileChange"
-                      class="absolute inset-0 opacity-0 cursor-pointer"
-                    />
-                    <div class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs flex items-center justify-between group-hover/file:border-white/30 transition-colors">
-                      <span class="truncate opacity-60">{{ form.fileName || 'Attach Image / Camera' }}</span>
-                      <svg class="w-4 h-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <!-- Media Upload (Compact & Preview) -->
+                <div class="relative flex-1 group/file">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    capture="environment"
+                    @change="handleFileChange"
+                    class="absolute inset-0 opacity-0 cursor-pointer z-20"
+                  />
+                  
+                  <!-- Upload State -->
+                  <div class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition-all group-hover/file:bg-white/10 group-hover/file:border-white/20">
+                    <!-- Icon or Preview -->
+                    <div v-if="previewUrl" class="relative w-6 h-6 rounded overflow-hidden border border-white/20">
+                      <img :src="previewUrl" class="w-full h-full object-cover" />
                     </div>
+                    <div v-else class="w-6 h-6 rounded flex items-center justify-center bg-white/10">
+                      <svg class="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+
+                    <!-- Text -->
+                    <span class="text-xs text-white/60 truncate flex-1">
+                      {{ form.fileName || 'Attach Media' }}
+                    </span>
+
+                    <!-- Remove Button (if file exists) -->
+                    <button v-if="form.fileName" @click.stop.prevent="clearFile" class="relative z-30 p-1 hover:bg-white/10 rounded-full">
+                       <svg class="w-3 h-3 text-white/40 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -104,6 +117,7 @@
       @touchmove="onMouseMoveTouch"
       @touchend="stopInteraction"
       @wheel="handleWheel"
+      @click="clearFocus"
     >
       <!-- Task Field Background Grid -->
       <div class="absolute inset-0 opacity-10 pointer-events-none" :style="backgroundStyle"></div>
@@ -113,30 +127,43 @@
         v-for="(task, index) in tasks" 
         :key="task.id"
         class="absolute cursor-grab active:cursor-grabbing"
-        :class="{'transition-transform duration-300 ease-out': draggingTaskId !== task.id}"
+        :class="{'transition-transform duration-300 ease-out': draggingTaskId !== task.id, 'z-[100]': draggingTaskId === task.id || focusedTaskId === task.id}"
         :style="getTaskStyle(task)"
-        @mousedown.stop="startDragTask($event, task)"
-        @touchstart.stop="startDragTaskTouch($event, task)"
+        @mousedown="startDragTask($event, task)"
+        @touchstart="startDragTaskTouch($event, task)"
+        @click.stop="focusTask(task)"
       >
         <div 
           class="task-box group"
-          :class="{'completed': task.completed, 'dragging': draggingTaskId === task.id}"
+          :class="{
+            'completed': task.completed, 
+            'dragging': draggingTaskId === task.id,
+            'focused': focusedTaskId === task.id
+          }"
         >
           <!-- Task Content -->
           <div class="relative z-10 p-2 md:p-4 min-w-[130px] md:min-w-[200px] max-w-[160px] md:max-w-[260px]">
-            <!-- Protocol Header -->
+             <!-- Protocol Header -->
             <div class="flex justify-between items-start mb-2 text-[7px] md:text-[9px]">
-              <span class="font-black opacity-30 tracking-[0.2em] uppercase">Protocol #{{ index + 1 }}</span>
+              <span class="font-black opacity-30 tracking-[0.2em] uppercase text-white">#{{ index + 1 }}</span>
               <div class="flex items-center gap-2">
                 <!-- Progress Counter -->
                 <div class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10">
-                  <button @click.stop="incrementCount(task)" class="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95">
+                  <button 
+                    @click.stop="incrementCount(task)" 
+                    @touchstart.stop 
+                    class="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                  >
                     <span class="text-white font-bold text-[10px] md:text-xs">+</span>
                   </button>
                   <span class="text-[9px] md:text-[10px] font-mono font-bold text-white/60">{{ task.count || 0 }}</span>
                 </div>
                 <!-- Completion Checkbox -->
-                <button @click.stop="toggleTask(task)" class="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm border border-white/20 flex items-center justify-center hover:border-white transition-colors">
+                <button 
+                  @click.stop="toggleTask(task)" 
+                  @touchstart.stop
+                  class="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm border border-white/20 flex items-center justify-center hover:border-white transition-colors"
+                >
                   <svg v-if="task.completed" class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
                 </button>
               </div>
@@ -160,9 +187,13 @@
             </div>
 
             <!-- Footer Stats -->
-            <div class="flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity" :class="{'opacity-100': focusedTaskId === task.id}">
               <span class="text-[7px] md:text-[9px] text-white/20 font-mono">{{ formatDate(task.createdAt) }}</span>
-              <button @click.stop="showDeleteConfirm(task.id)" class="text-white/30 hover:text-red-400 transition-colors">
+              <button 
+                @click.stop="showDeleteConfirm(task.id)" 
+                @touchstart.stop
+                class="text-white/30 hover:text-red-400 transition-colors"
+              >
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
               </button>
             </div>
@@ -267,23 +298,29 @@ export default {
         fileName: ''
       },
       mediaFile: null,
+      previewUrl: null,
       isAddingExpanded: false,
       isUploading: false,
       isArchiving: false,
       deleteConfirmId: null,
       errorMessage: null,
       draggingTaskId: null,
+      potentialDragTaskId: null,
+      focusedTaskId: null,
+      dragThreshold: 5,
+      dragStart: { x: 0, y: 0 },
+      isActuallyDragging: false,
       offset: { x: 0, y: 0 },
       pan: { x: 0, y: 0 },
       isPanning: false,
       physicsLoop: null,
-      repulsionStrength: 8, // Very low repulsion to help spreading without chaos
+      repulsionStrength: 8,
       repulsionRadius: 180,
       damping: 0.95,
       fieldBounds: { width: 4000, height: 4000 },
       zoom: 1,
-      minZoom: 0.15, // Allow zooming out much further
-      maxZoom: 3,    // Allow zooming in more
+      minZoom: 0.15,
+      maxZoom: 3,
       lastPinchDist: 0
     };
   },
@@ -347,12 +384,23 @@ export default {
       if (file) {
         this.mediaFile = file;
         this.form.fileName = file.name;
+        // Create local preview
+        this.previewUrl = URL.createObjectURL(file);
+      }
+    },
+
+    clearFile() {
+      this.mediaFile = null;
+      this.form.fileName = '';
+      if (this.previewUrl) {
+         URL.revokeObjectURL(this.previewUrl);
+         this.previewUrl = null;
       }
     },
 
     resetForm() {
       this.form = { title: '', description: '', planDate: '', fileName: '' };
-      this.mediaFile = null;
+      this.clearFile();
       this.isAddingExpanded = false;
       this.isUploading = false;
       this.errorMessage = null;
@@ -365,18 +413,30 @@ export default {
       this.errorMessage = null;
       let imageUrl = null;
 
+      // Safety limit: 20 seconds
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Upload timed out. Please check your connection.")), 20000)
+      );
+
       try {
         if (this.mediaFile) {
           console.log("Starting file upload...");
-          const fileRef = storageRef(storage, `tasks/${auth.currentUser.uid}/${Date.now()}_${this.mediaFile.name}`);
+          // Sanitize filename
+          const sanitizedName = this.mediaFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const fileRef = storageRef(storage, `tasks/${auth.currentUser.uid}/${Date.now()}_${sanitizedName}`);
           
           try {
-            const snapshot = await uploadBytes(fileRef, this.mediaFile);
+            // Race between upload and timeout
+            const uploadPromise = uploadBytes(fileRef, this.mediaFile);
+            const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
+            
             console.log("Upload successful, getting download URL...");
             imageUrl = await getDownloadURL(snapshot.ref);
           } catch (storageError) {
             console.error("Storage Error:", storageError);
-            if (storageError.code === 'storage/unauthorized') {
+            if (storageError.message.includes('timed out')) {
+               throw storageError;
+            } else if (storageError.code === 'storage/unauthorized') {
               throw new Error("Unauthorized access to storage. Please check security rules.");
             } else if (storageError.message.includes('CORS')) {
               throw new Error("CORS policy blocked the upload. Firebase Storage needs CORS configuration for localhost.");
@@ -500,7 +560,9 @@ export default {
 
     // DESKTOP INTERACTION
     startDragTask(e, task) {
+      if (e.button !== 0) return; // Only left click
       this.draggingTaskId = task.id;
+      this.focusedTaskId = task.id; // Also focus
       const rect = this.$refs.field.getBoundingClientRect();
       this.offset = {
         x: e.clientX - rect.left - (task.x + this.pan.x + rect.width / 2),
@@ -510,34 +572,35 @@ export default {
     startPan(e) {
       if (this.isAddingExpanded) return;
       this.isPanning = true;
-      // Record starting position for smooth offset
       this.offset = { x: e.clientX - this.pan.x, y: e.clientY - this.pan.y };
     },
     onMouseMove(e) {
       const rect = this.$refs.field.getBoundingClientRect();
+      // Header Safety Constraint
+      let clientY = e.clientY;
+      const headerProtection = 160; 
+      if (clientY < headerProtection) clientY = headerProtection;
+
       if (this.draggingTaskId) {
         const task = this.tasks.find(t => t.id === this.draggingTaskId);
         if (task) {
-          // World coordinates calculation
           task.x = (e.clientX - rect.left - rect.width / 2 - this.pan.x) / this.zoom;
-          task.y = (e.clientY - rect.top - rect.height / 2 - this.pan.y) / this.zoom;
+          task.y = (clientY - rect.top - rect.height / 2 - this.pan.y) / this.zoom;
           task.vx = task.vy = 0;
         }
       } else if (this.isPanning) {
         this.pan.x = e.clientX - this.offset.x;
-        this.pan.y = e.clientY - this.offset.y;
+        this.pan.y = clientY - this.offset.y;
       }
     },
 
     // TOUCH INTERACTION (Mobile)
     startDragTaskTouch(e, task) {
+      // Don't start drag immediately. Wait for movement.
       const touch = e.touches[0];
-      this.draggingTaskId = task.id;
-      const rect = this.$refs.field.getBoundingClientRect();
-      this.offset = {
-        x: touch.clientX - rect.left - (task.x + this.pan.x + rect.width / 2),
-        y: touch.clientY - rect.top - (task.y + this.pan.y + rect.height / 2)
-      };
+      this.potentialDragTaskId = task.id;
+      this.dragStart = { x: touch.clientX, y: touch.clientY };
+      this.isActuallyDragging = false;
     },
     startPanTouch(e) {
       if (this.isAddingExpanded) return;
@@ -552,45 +615,96 @@ export default {
       }
       const touch = e.touches[0];
       const rect = this.$refs.field.getBoundingClientRect();
+      
+      // Header Safety Constraint
+      let clientY = touch.clientY;
+      const headerProtection = 160;
+      // Soft resistance or hard stop? Hard stop ensures no overlap.
+      if (clientY < headerProtection) clientY = headerProtection;
+
+      // Check for drag initiation
+      if (this.potentialDragTaskId && !this.isActuallyDragging) {
+        const dx = touch.clientX - this.dragStart.x;
+        const dy = clientY - this.dragStart.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > this.dragThreshold) {
+          this.isActuallyDragging = true;
+          this.draggingTaskId = this.potentialDragTaskId;
+          this.focusedTaskId = this.potentialDragTaskId;
+          this.potentialDragTaskId = null;
+          
+          // Calculate offset relative to CURRENT touch position to avoid jump
+          const task = this.tasks.find(t => t.id === this.draggingTaskId);
+          if (task) {
+             this.offset = {
+              x: touch.clientX - rect.left - (task.x + this.pan.x + rect.width / 2),
+              y: clientY - rect.top - (task.y + this.pan.y + rect.height / 2)
+            };
+          }
+        }
+      }
+
       if (this.draggingTaskId) {
         const task = this.tasks.find(t => t.id === this.draggingTaskId);
         if (task) {
-          // World coordinates calculation
           task.x = (touch.clientX - rect.left - rect.width / 2 - this.pan.x) / this.zoom;
-          task.y = (touch.clientY - rect.top - rect.height / 2 - this.pan.y) / this.zoom;
+          task.y = (clientY - rect.top - rect.height / 2 - this.pan.y) / this.zoom;
           task.vx = task.vy = 0;
         }
       } else if (this.isPanning) {
         this.pan.x = touch.clientX - this.offset.x;
-        this.pan.y = touch.clientY - this.offset.y;
+        this.pan.y = clientY - this.offset.y;
       }
     },
 
     async stopInteraction() {
+      // If we had a potential drag but never moved enough, treat it as a tap/focus
+      if (this.potentialDragTaskId && !this.isActuallyDragging) {
+        this.focusTaskByName(this.potentialDragTaskId);
+      }
+
       if (this.draggingTaskId) {
         const task = this.tasks.find(t => t.id === this.draggingTaskId);
-        if (task) await updateDoc(doc(db, 'tasks', task.id), { x: task.x, y: task.y });
+        if (task) {
+            await updateDoc(doc(db, 'tasks', task.id), { x: task.x, y: task.y });
+        }
         this.draggingTaskId = null;
       }
       this.isPanning = false;
+      this.potentialDragTaskId = null;
+      this.isActuallyDragging = false;
+    },
+
+    focusTask(task) {
+       this.focusedTaskId = task.id;
+    },
+    focusTaskByName(id) {
+       this.focusedTaskId = id;
+    },
+    clearFocus() {
+      this.focusedTaskId = null;
     },
 
     getTaskStyle(task) {
       const x = (task.x * this.zoom) + this.pan.x;
       const y = (task.y * this.zoom) + this.pan.y;
       
+      const isDragging = this.draggingTaskId === task.id;
+      const isFocused = this.focusedTaskId === task.id;
+
       return {
         left: '50%',
         top: '50%',
-        transform: `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${this.zoom})`,
-        zIndex: this.draggingTaskId === task.id ? 100 : 10,
-        transition: this.draggingTaskId === task.id ? 'none' : 'transform 0.15s linear'
+        transform: `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${this.zoom * (isFocused ? 1.05 : 1)})`,
+        zIndex: isDragging || isFocused ? 100 : 10,
+        transition: isDragging ? 'none' : 'transform 0.15s cubic-bezier(0.17, 0.67, 0.83, 0.67)'
       };
     },
     handleWheel(e) {
       e.preventDefault();
       const zoomSpeed = 0.0015;
-      const delta = -e.deltaY * zoomSpeed * this.zoom; // Exponential zoom for better feel
+      const delta = -e.deltaY * zoomSpeed * this.zoom;
       const newZoom = Math.min(Math.max(this.zoom + delta, this.minZoom), this.maxZoom);
       this.zoom = newZoom;
     },
@@ -666,12 +780,21 @@ export default {
 }
 
 .task-box {
-  transition: transform 0.1s linear, box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  width: 140px; 
-  backdrop-filter: blur(24px);
+  transition: transform 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67), box-shadow 0.2s ease;
+  width: auto;
+  backdrop-filter: blur(10px);
   position: relative;
   transform-style: preserve-3d;
   perspective: 1000px;
+}
+
+.task-box.focused {
+  transform: scale(1.1);
+  box-shadow: 
+    0 30px 60px -12px rgba(0, 0, 0, 0.6),
+    0 0 30px rgba(6, 182, 212, 0.15); /* Cyan glow */
+  z-index: 50;
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .tsk-card-glass {
@@ -681,27 +804,11 @@ export default {
     inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
-.task-box:hover {
-  transform: translateY(-5px) rotateX(2deg) rotateY(-2deg);
+.task-box:hover, .task-box.focused {
+  transform: translateY(-5px) scale(1.02);
   box-shadow: 
     0 20px 40px -10px rgba(0, 0, 0, 0.6),
     0 0 20px rgba(255, 255, 255, 0.1);
-}
-
-@media (min-width: 768px) {
-  .task-box {
-    width: auto;
-  }
-}
-
-.task-box.dragging {
-  transform: scale(1.02);
-  filter: brightness(1.2);
-}
-
-.task-box.completed .absolute.inset-0 {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
 }
 
 @keyframes border-flow {
