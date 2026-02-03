@@ -1,272 +1,262 @@
 <template>
-  <div class="tsk-container relative w-full h-screen flex flex-col overflow-hidden text-white font-sans">
+  <div class="tsk-view">
     <UniversalBanner />
-
-    <!-- HEADER -->
-    <header class="relative z-50 pt-20 md:pt-24 w-full max-w-2xl px-6 mx-auto flex flex-col items-center safe-top">
-      <!-- ENHANCED TASK INPUT -->
-      <div class="box-task-input group relative w-full mb-6">
-        <div class="absolute inset-0 bg-white/5 blur-xl group-focus-within:bg-white/10 transition-all"></div>
-        <div class="relative flex flex-col bg-black/40 border-2 border-white/10 rounded-2xl p-3 md:p-4 transition-all focus-within:border-white/40 backdrop-blur-xl">
-          <div class="flex items-center gap-3 md:gap-4" :class="{'mb-4': isAddingExpanded}">
+    
+    <!-- HEADER WITH QUICK ADD -->
+    <header class="tsk-header">
+      <div class="container">
+        <div class="header-title">
+          <h1>TASKS</h1>
+          <span class="task-count">{{ tasks.length }} active</span>
+        </div>
+        
+        <!-- QUICK ADD TASK -->
+        <div class="quick-add" :class="{ 'expanded': isAddingExpanded }">
+          <div class="quick-add-main">
             <input 
               v-model="form.title" 
               @keyup.enter="addTask"
               @focus="isAddingExpanded = true"
-              placeholder="ADD NEW DIRECTIVE..." 
-              class="flex-1 bg-transparent border-none outline-none px-2 py-1 text-sm md:text-lg font-bold tracking-widest placeholder:text-white/20"
+              placeholder="What needs to be done?" 
+              class="task-input"
             />
-            <button 
-              @click="addTask" 
-              :disabled="isUploading"
-              class="bg-white text-black font-black px-4 md:px-6 py-2 rounded-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
-            >
-              <span v-if="!isUploading">+</span>
-              <svg v-else class="animate-spin h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <button @click="addTask" :disabled="isUploading" class="add-btn">
+              <svg v-if="!isUploading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              <svg v-else class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
             </button>
           </div>
-
-          <!-- Expanded Form Fields -->
-          <transition name="expand">
-            <div v-if="isAddingExpanded" class="space-y-4 pt-4 border-t border-white/10">
+          
+          <!-- EXPANDED OPTIONS -->
+          <transition name="slide-down">
+            <div v-if="isAddingExpanded" class="task-options">
               <textarea 
                 v-model="form.description" 
-                placeholder="Description / Details..."
-                class="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs md:text-sm outline-none focus:border-white/30 transition-colors resize-none h-20"
+                placeholder="Add description..."
+                class="task-description"
               ></textarea>
               
-              <div class="flex items-center gap-3">
-                <!-- Date Picker (Compact) -->
-                <div class="relative group/date">
-                   <input 
-                    type="date" 
-                    v-model="form.planDate"
-                    class="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-2 py-2 text-xs outline-none focus:border-white/30 transition-colors uppercase tracking-widest text-white/70"
-                  />
-                </div>
-
-                <!-- Media Upload (Compact & Preview) -->
-                <div class="relative flex-1 group/file">
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    capture="environment"
-                    @change="handleFileChange"
-                    class="absolute inset-0 opacity-0 cursor-pointer z-20"
-                  />
-                  
-                  <!-- Upload State -->
-                  <div class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 transition-all group-hover/file:bg-white/10 group-hover/file:border-white/20">
-                    <!-- Icon or Preview -->
-                    <div v-if="previewUrl" class="relative w-6 h-6 rounded overflow-hidden border border-white/20">
-                      <img :src="previewUrl" class="w-full h-full object-cover" />
-                    </div>
-                    <div v-else class="w-6 h-6 rounded flex items-center justify-center bg-white/10">
-                      <svg class="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </div>
-
-                    <!-- Text -->
-                    <span class="text-xs text-white/60 truncate flex-1">
-                      {{ form.fileName || 'Attach Media' }}
-                    </span>
-
-                    <!-- Remove Button (if file exists) -->
-                    <button v-if="form.fileName" @click.stop.prevent="clearFile" class="relative z-30 p-1 hover:bg-white/10 rounded-full">
-                       <svg class="w-3 h-3 text-white/40 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                  </div>
-                </div>
+              <div class="task-meta">
+                <input 
+                  type="date" 
+                  v-model="form.planDate"
+                  class="task-date"
+                />
+                
+                <select v-model="form.priority" class="task-priority">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+                
+                <!-- URGENCY TOGGLE -->
+                <label class="urgency-toggle" :class="{ active: form.urgent }">
+                  <input type="checkbox" v-model="form.urgent" hidden />
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Urgent
+                </label>
+                
+                <label class="file-upload">
+                  <input type="file" accept="image/*" @change="handleFileChange" hidden />
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                  {{ form.fileName || 'Attach' }}
+                </label>
+                
+                <button @click="resetForm" class="cancel-btn">Cancel</button>
               </div>
-
-              <!-- Error Message Display -->
-              <div v-if="errorMessage" class="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] md:text-xs">
-                {{ errorMessage }}
-                <p v-if="errorMessage.includes('CORS')" class="mt-1 opacity-80">
-                  Note: Please ensure Firebase Storage CORS is configured for localhost.
-                </p>
-              </div>
-
-              <div class="flex justify-end gap-2 pt-2">
-                <button 
-                  v-if="!isUploading"
-                  @click="resetForm" 
-                  class="text-[10px] font-bold opacity-40 hover:opacity-100 transition-opacity uppercase tracking-widest px-4 py-2"
-                >
-                  Cancel
-                </button>
+              
+              <div v-if="previewUrl" class="image-preview">
+                <img :src="previewUrl" alt="Preview" />
+                <button @click="clearFile" class="remove-preview">×</button>
               </div>
             </div>
           </transition>
         </div>
       </div>
     </header>
-
-    <!-- TASK FIELD (BIG MOVABLE AREA) -->
-    <main 
-      ref="field"
-      class="flex-1 relative cursor-crosshair m-2 md:m-4 mb-32 md:mb-24 overflow-hidden touch-none"
-      style="margin-top: 50px;"
-      @mousedown.self="startPan"
-      @mousemove="onMouseMove"
-      @mouseup="stopInteraction"
-      @mouseleave="stopInteraction"
-      @touchstart.self="startPanTouch"
-      @touchmove="onMouseMoveTouch"
-      @touchend="stopInteraction"
-      @wheel="handleWheel"
-      @click="clearFocus"
-    >
-      <!-- Task Field Background Grid -->
-      <div class="absolute inset-0 opacity-10 pointer-events-none" :style="backgroundStyle"></div>
-
-      <!-- Draggable Tasks -->
-      <div 
-        v-for="(task, index) in tasks" 
-        :key="task.id"
-        class="absolute cursor-grab active:cursor-grabbing"
-        :class="{'transition-transform duration-300 ease-out': draggingTaskId !== task.id, 'z-[100]': draggingTaskId === task.id || focusedTaskId === task.id}"
-        :style="getTaskStyle(task)"
-        @mousedown="startDragTask($event, task)"
-        @touchstart="startDragTaskTouch($event, task)"
-        @click.stop="focusTask(task)"
-      >
-        <div 
-          class="task-box group"
-          :class="{
-            'completed': task.completed, 
-            'dragging': draggingTaskId === task.id,
-            'focused': focusedTaskId === task.id
-          }"
-        >
-          <!-- Task Content -->
-          <div class="relative z-10 p-2 md:p-4 min-w-[130px] md:min-w-[200px] max-w-[160px] md:max-w-[260px]">
-             <!-- Protocol Header -->
-            <div class="flex justify-between items-start mb-2 text-[7px] md:text-[9px]">
-              <span class="font-black opacity-30 tracking-[0.2em] uppercase text-white">#{{ index + 1 }}</span>
-              <div class="flex items-center gap-2">
-                <!-- Progress Counter -->
-                <div class="flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/5 border border-white/10">
-                  <button 
-                    @click.stop="incrementCount(task)" 
-                    @touchstart.stop 
-                    class="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-                  >
-                    <span class="text-white font-bold text-[10px] md:text-xs">+</span>
-                  </button>
-                  <span class="text-[9px] md:text-[10px] font-mono font-bold text-white/60">{{ task.count || 0 }}</span>
-                </div>
-                <!-- Completion Checkbox -->
-                <button 
-                  @click.stop="toggleTask(task)" 
-                  @touchstart.stop
-                  class="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm border border-white/20 flex items-center justify-center hover:border-white transition-colors"
-                >
-                  <svg v-if="task.completed" class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+    
+    <!-- FILTERS & ACTIONS -->
+    <div class="toolbar">
+      <div class="container">
+        <div class="filters">
+          <button 
+            v-for="filter in ['all', 'active', 'completed']" 
+            :key="filter"
+            @click="currentFilter = filter"
+            :class="{ active: currentFilter === filter }"
+            class="filter-btn"
+          >
+            {{ filter }}
+          </button>
+        </div>
+        
+        <div class="actions">
+          <button 
+            v-if="completedCount > 0"
+            @click="showArchiveConfirm" 
+            class="archive-btn"
+          >
+            Archive {{ completedCount }} completed
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- TASKS LIST -->
+    <main class="tasks-container">
+      <div class="container">
+        <transition-group name="task-list" tag="div" class="task-grid">
+          <div 
+            v-for="task in filteredTasks" 
+            :key="task.id"
+            class="task-card"
+            :class="{ 
+              'completed': task.completed,
+              'editing': editingTaskId === task.id,
+              'urgent': task.urgent,
+              [`priority-${task.priority || 'medium'}`]: true
+            }"
+          >
+            <!-- TASK HEADER -->
+            <div class="task-header">
+              <button 
+                @click="toggleTask(task)" 
+                class="checkbox"
+                :class="{ checked: task.completed }"
+              >
+                <svg v-if="task.completed" class="checkmark" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                </svg>
+              </button>
+              
+              <div class="task-info">
+                <input 
+                  v-if="editingTaskId === task.id"
+                  v-model="task.title"
+                  @blur="saveTask(task)"
+                  @keyup.enter="saveTask(task)"
+                  @keyup.esc="cancelEdit"
+                  class="task-title-edit"
+                  ref="editInput"
+                />
+                <h3 v-else @dblclick="startEdit(task)" class="task-title">
+                  {{ task.title }}
+                </h3>
+                
+                <p v-if="task.description && editingTaskId !== task.id" class="task-desc">
+                  {{ task.description }}
+                </p>
+              </div>
+              
+              <div class="task-actions">
+                <button @click="incrementCount(task)" class="count-btn">
+                  <span>{{ task.count || 0 }}</span>
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                </button>
+                
+                <button @click="startEdit(task)" class="edit-btn">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </button>
+                
+                <button @click="showDeleteConfirm(task.id)" class="delete-btn">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
                 </button>
               </div>
             </div>
             
-            <!-- Image Attachment if exists -->
-            <div v-if="task.imageUrl" class="w-full h-24 md:h-32 mb-3 rounded-lg overflow-hidden border border-white/10 bg-black/20">
-              <img :src="task.imageUrl" class="w-full h-full object-cover" loading="lazy" />
+            <!-- TASK IMAGE -->
+            <div v-if="task.imageUrl" class="task-image">
+              <img :src="task.imageUrl" alt="Task attachment" />
             </div>
-
-            <!-- Title & Description -->
-            <h3 class="font-bold text-xs md:text-base mb-1 group-hover:text-white transition-colors leading-tight" :class="{'line-through opacity-50': task.completed}">
-              {{ task.title }}
-            </h3>
-            <p v-if="task.description" class="text-[9px] md:text-xs text-white/40 line-clamp-2 md:line-clamp-3 mb-3 leading-relaxed">{{ task.description }}</p>
-
-            <!-- Plan Date Badge -->
-            <div v-if="task.planDate" class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 border border-white/10 mb-3">
-              <svg class="w-2.5 h-2.5 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              <span class="text-[8px] md:text-[10px] opacity-60 font-mono">{{ task.planDate }}</span>
+            
+            <!-- TASK FOOTER -->
+            <div class="task-footer">
+              <span v-if="task.planDate" class="task-date-badge">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                {{ task.planDate }}
+              </span>
+              
+              <span class="task-created">
+                {{ formatDate(task.createdAt) }}
+              </span>
             </div>
-
-            <!-- Footer Stats -->
-            <div class="flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity" :class="{'opacity-100': focusedTaskId === task.id}">
-              <span class="text-[7px] md:text-[9px] text-white/20 font-mono">{{ formatDate(task.createdAt) }}</span>
-              <button 
-                @click.stop="showDeleteConfirm(task.id)" 
-                @touchstart.stop
-                class="text-white/30 hover:text-red-400 transition-colors"
-              >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-              </button>
-            </div>
+            
+            <!-- PRIORITY INDICATOR -->
+            <div class="priority-bar"></div>
           </div>
-
-          <!-- Glass Effect & Border -->
-          <div class="absolute inset-0 bg-white/[0.03] backdrop-blur-2xl rounded-lg md:rounded-xl border border-white/10 group-hover:border-white/40 shadow-2xl transition-all overflow-hidden tsk-card-glass">
-            <!-- Animated Border Fill -->
-            <div class="absolute inset-0 border-2 border-white/0 group-hover:border-white/10 transition-all duration-500"></div>
-            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-border-flow"></div>
-          </div>
-          <div class="absolute -inset-1 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-[12px] md:rounded-[16px] blur-xl"></div>
+        </transition-group>
+        
+        <!-- EMPTY STATE -->
+        <div v-if="filteredTasks.length === 0" class="empty-state">
+          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3>{{ emptyStateMessage }}</h3>
+          <p>{{ emptyStateSubtext }}</p>
         </div>
       </div>
     </main>
-
-    <!-- FOOTER NAV -->
-    <footer class="fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 p-2 bg-black/40 border border-white/10 rounded-full backdrop-blur-2xl whitespace-nowrap">
-      <!-- TSK Letters -->
-      <div class="flex gap-1.5 px-2">
-        <div v-for="char in 'TSK'" :key="char" class="box-letter-footer">
-          {{ char }}
-        </div>
-      </div>
-      <div class="w-px h-4 bg-white/10"></div>
-      <button @click="backToCollection" class="px-4 md:px-6 py-2 rounded-full hover:bg-white/10 transition-colors text-[10px] md:text-xs font-bold tracking-widest uppercase">
-        Collection
-      </button>
-      <div class="w-px h-4 bg-white/10"></div>
-      <button 
-        v-if="completedCount > 0"
-        @click="archiveCompleted" 
-        :disabled="isArchiving"
-        class="px-4 md:px-6 py-2 rounded-full hover:bg-green-500/20 transition-all text-[10px] md:text-xs font-bold tracking-widest uppercase text-green-400/80 hover:text-green-400 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      >
-        <svg v-if="!isArchiving" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-        <svg v-else class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        {{ isArchiving ? 'Archiving...' : `Archive (${completedCount})` }}
-      </button>
-      <div v-if="completedCount > 0" class="w-px h-4 bg-white/10"></div>
-      <div class="px-4 md:px-6 py-2 text-[10px] md:text-xs font-bold tracking-widest uppercase text-white/30">
-        {{ tasks.length }} Tasks
-      </div>
-    </footer>
-
-    <!-- DELETE CONFIRMATION MODAL -->
-    <transition name="modal-fade">
-      <div v-if="deleteConfirmId" @click="cancelDelete" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div @click.stop class="bg-black/80 border-2 border-red-500/30 rounded-2xl p-6 md:p-8 max-w-sm mx-4 backdrop-blur-xl shadow-2xl transform transition-all">
-          <div class="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-full bg-red-500/10 border border-red-500/20">
-            <svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+    
+    <!-- DELETE MODAL -->
+    <transition name="modal">
+      <div v-if="deleteConfirmId" @click="cancelDelete" class="modal-overlay">
+        <div @click.stop class="modal-content">
+          <div class="modal-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
           </div>
-          
-          <h3 class="text-lg md:text-xl font-black text-center mb-2 text-white">Delete Task?</h3>
-          <p class="text-sm md:text-base text-white/60 text-center mb-6">Are you sure you want to permanently delete this task? This action cannot be undone.</p>
-          
-          <div class="flex gap-3">
-            <button 
-              @click="cancelDelete" 
-              class="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-bold text-sm transition-all hover:scale-105 active:scale-95"
-            >
-              Cancel
-            </button>
-            <button 
-              @click="confirmDelete" 
-              class="flex-1 px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 font-bold text-sm text-red-400 transition-all hover:scale-105 active:scale-95"
-            >
-              Delete
-            </button>
+          <h3>Delete Task?</h3>
+          <p>This action cannot be undone.</p>
+          <div class="modal-actions">
+            <button @click="cancelDelete" class="modal-btn secondary">Cancel</button>
+            <button @click="confirmDelete" class="modal-btn danger">Delete</button>
           </div>
         </div>
       </div>
     </transition>
+    
+    <!-- ARCHIVE CONFIRMATION MODAL -->
+    <transition name="modal">
+      <div v-if="showArchiveModal" @click="cancelArchive" class="modal-overlay">
+        <div @click.stop class="modal-content archive-modal">
+          <div class="modal-icon archive-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+            </svg>
+          </div>
+          <h3>Archive Completed Tasks?</h3>
+          <p>Do you really want to archive {{ completedCount }} completed task{{ completedCount > 1 ? 's' : '' }}?</p>
+          <div class="modal-actions">
+            <button @click="cancelArchive" class="modal-btn secondary">No</button>
+            <button @click="confirmArchive" class="modal-btn success">Yes</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+    
+    <!-- FLOATING ACTION BUTTON (Mobile) -->
+    <button @click="$router.push('/')" class="fab">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -295,87 +285,57 @@ export default {
         title: '',
         description: '',
         planDate: '',
-        fileName: ''
+        fileName: '',
+        priority: 'medium',
+        urgent: false
       },
       mediaFile: null,
       previewUrl: null,
       isAddingExpanded: false,
       isUploading: false,
-      isArchiving: false,
       deleteConfirmId: null,
-      errorMessage: null,
-      draggingTaskId: null,
-      potentialDragTaskId: null,
-      focusedTaskId: null,
-      dragThreshold: 5,
-      dragStart: { x: 0, y: 0 },
-      isActuallyDragging: false,
-      offset: { x: 0, y: 0 },
-      pan: { x: 0, y: 0 },
-      isPanning: false,
-      physicsLoop: null,
-      repulsionStrength: 8,
-      repulsionRadius: 180,
-      damping: 0.95,
-      fieldBounds: { width: 4000, height: 4000 },
-      zoom: 1,
-      minZoom: 0.15,
-      maxZoom: 3,
-      lastPinchDist: 0
+      editingTaskId: null,
+      currentFilter: 'all',
+      showArchiveModal: false
     };
   },
   computed: {
-    backgroundStyle() {
-      const gSize = 40 * this.zoom;
-      return {
-        backgroundPosition: `${this.pan.x}px ${this.pan.y}px`,
-        backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
-        backgroundSize: `${gSize}px ${gSize}px`
-      };
-    },
-    isMobile() {
-      return typeof window !== 'undefined' && window.innerWidth < 768;
+    filteredTasks() {
+      if (this.currentFilter === 'active') {
+        return this.tasks.filter(t => !t.completed);
+      } else if (this.currentFilter === 'completed') {
+        return this.tasks.filter(t => t.completed);
+      }
+      return this.tasks;
     },
     completedCount() {
       return this.tasks.filter(t => t.completed).length;
+    },
+    emptyStateMessage() {
+      if (this.currentFilter === 'completed') return 'No completed tasks';
+      if (this.currentFilter === 'active') return 'No active tasks';
+      return 'No tasks yet';
+    },
+    emptyStateSubtext() {
+      if (this.currentFilter === 'completed') return 'Complete some tasks to see them here';
+      return 'Create your first task to get started';
     }
   },
   mounted() {
     this.loadTasks();
-    this.startPhysics();
-    this.centerField();
-  },
-  beforeUnmount() {
-    if (this.physicsLoop) cancelAnimationFrame(this.physicsLoop);
   },
   methods: {
-    centerField() {
-      this.pan.x = 0;
-      this.pan.y = 0;
-    },
     loadTasks() {
       if (!auth.currentUser) return;
       const q = query(collection(db, 'tasks'), where('userId', '==', auth.currentUser.uid));
       onSnapshot(q, (snapshot) => {
-        const newTasks = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            x: data.x ?? (Math.random() - 0.5) * 2000, // Wider initial spread
-            y: data.y ?? (Math.random() - 0.5) * 1500,
-            vx: 0,
-            vy: 0
-          };
-        }).filter(t => !t.archived);
-        
-        this.tasks = newTasks.map(nt => {
-          const old = this.tasks.find(o => o.id === nt.id);
-          if (old && nt.id !== this.draggingTaskId) {
-            return { ...nt, vx: old.vx, vy: old.vy };
-          }
-          return nt;
-        });
+        this.tasks = snapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(t => !t.archived)
+          .sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            return b.createdAt?.seconds - a.createdAt?.seconds;
+          });
       });
     },
 
@@ -384,7 +344,6 @@ export default {
       if (file) {
         this.mediaFile = file;
         this.form.fileName = file.name;
-        // Create local preview
         this.previewUrl = URL.createObjectURL(file);
       }
     },
@@ -393,81 +352,49 @@ export default {
       this.mediaFile = null;
       this.form.fileName = '';
       if (this.previewUrl) {
-         URL.revokeObjectURL(this.previewUrl);
-         this.previewUrl = null;
+        URL.revokeObjectURL(this.previewUrl);
+        this.previewUrl = null;
       }
     },
 
     resetForm() {
-      this.form = { title: '', description: '', planDate: '', fileName: '' };
+      this.form = { title: '', description: '', planDate: '', fileName: '', priority: 'medium', urgent: false };
       this.clearFile();
       this.isAddingExpanded = false;
-      this.isUploading = false;
-      this.errorMessage = null;
     },
 
     async addTask() {
       if (!this.form.title.trim() || !auth.currentUser || this.isUploading) return;
       
       this.isUploading = true;
-      this.errorMessage = null;
       let imageUrl = null;
-
-      // Safety limit: 20 seconds
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("Upload timed out. Please check your connection.")), 20000)
-      );
 
       try {
         if (this.mediaFile) {
-          console.log("Starting file upload...");
-          // Sanitize filename
           const sanitizedName = this.mediaFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
           const fileRef = storageRef(storage, `tasks/${auth.currentUser.uid}/${Date.now()}_${sanitizedName}`);
-          
-          try {
-            // Race between upload and timeout
-            const uploadPromise = uploadBytes(fileRef, this.mediaFile);
-            const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
-            
-            console.log("Upload successful, getting download URL...");
-            imageUrl = await getDownloadURL(snapshot.ref);
-          } catch (storageError) {
-            console.error("Storage Error:", storageError);
-            if (storageError.message.includes('timed out')) {
-               throw storageError;
-            } else if (storageError.code === 'storage/unauthorized') {
-              throw new Error("Unauthorized access to storage. Please check security rules.");
-            } else if (storageError.message.includes('CORS')) {
-              throw new Error("CORS policy blocked the upload. Firebase Storage needs CORS configuration for localhost.");
-            } else {
-              throw new Error("Media upload failed: " + storageError.message);
-            }
-          }
+          const snapshot = await uploadBytes(fileRef, this.mediaFile);
+          imageUrl = await getDownloadURL(snapshot.ref);
         }
 
-        const newTask = {
+        await addDoc(collection(db, 'tasks'), {
           title: this.form.title,
           description: this.form.description || '',
           planDate: this.form.planDate || '',
+          priority: this.form.priority || 'medium',
+          urgent: this.form.urgent || false,
           imageUrl: imageUrl,
           completed: false,
           archived: false,
           count: 0,
           userId: auth.currentUser.uid,
-          createdAt: new Date(),
-          x: -this.pan.x + (Math.random() - 0.5) * 100,
-          y: -this.pan.y + (Math.random() - 0.5) * 100,
-          vx: 0,
-          vy: 0
-        };
-
-        console.log("Adding task to Firestore...");
-        await addDoc(collection(db, 'tasks'), newTask);
+          createdAt: new Date()
+        });
+        
         this.resetForm();
       } catch (error) {
         console.error("Error adding task:", error);
-        this.errorMessage = error.message || "An unexpected error occurred.";
+        alert("Failed to add task: " + error.message);
       } finally {
         this.isUploading = false;
       }
@@ -478,8 +405,30 @@ export default {
     },
 
     async incrementCount(task) {
-      const newCount = (task.count || 0) + 1;
-      await updateDoc(doc(db, 'tasks', task.id), { count: newCount });
+      await updateDoc(doc(db, 'tasks', task.id), { count: (task.count || 0) + 1 });
+    },
+
+    startEdit(task) {
+      this.editingTaskId = task.id;
+      this.$nextTick(() => {
+        const input = this.$refs.editInput?.[0];
+        if (input) input.focus();
+      });
+    },
+
+    async saveTask(task) {
+      if (task.title.trim()) {
+        await updateDoc(doc(db, 'tasks', task.id), { 
+          title: task.title,
+          description: task.description || ''
+        });
+      }
+      this.editingTaskId = null;
+    },
+
+    cancelEdit() {
+      this.editingTaskId = null;
+      this.loadTasks(); // Reload to reset unsaved changes
     },
 
     showDeleteConfirm(taskId) {
@@ -497,361 +446,795 @@ export default {
       }
     },
 
-    async deleteTask(taskId) {
-      await deleteDoc(doc(db, 'tasks', taskId));
+    showArchiveConfirm() {
+      this.showArchiveModal = true;
     },
 
-    async archiveCompleted() {
-      if (this.isArchiving) return;
-      
-      this.isArchiving = true;
-      try {
-        const completedTasks = this.tasks.filter(t => t.completed);
-        const updatePromises = completedTasks.map(task => 
-          updateDoc(doc(db, 'tasks', task.id), { archived: true })
-        );
-        await Promise.all(updatePromises);
-        console.log(`Archived ${completedTasks.length} completed task(s)`);
-      } catch (error) {
-        console.error('Error archiving tasks:', error);
-      } finally {
-        this.isArchiving = false;
-      }
+    cancelArchive() {
+      this.showArchiveModal = false;
     },
 
-    startPhysics() {
-      const update = () => {
-        // Subtle repulsion to help spread
-        if (this.repulsionStrength > 0) {
-          for (let i = 0; i < this.tasks.length; i++) {
-            for (let j = i + 1; j < this.tasks.length; j++) {
-              const t1 = this.tasks[i];
-              const t2 = this.tasks[j];
-              const dx = t1.x - t2.x;
-              const dy = t1.y - t2.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              const radius = this.repulsionRadius;
-              if (dist < radius && dist > 0) {
-                const force = (radius - dist) / radius;
-                const fx = (dx / dist) * force * this.repulsionStrength;
-                const fy = (dy / dist) * force * this.repulsionStrength;
-                if (t1.id !== this.draggingTaskId) { t1.vx += fx; t1.vy += fy; }
-                if (t2.id !== this.draggingTaskId) { t2.vx -= fx; t2.vy -= fy; }
-              }
-            }
-          }
-        }
-
-        // Apply velocity & boundaries (Absolute Field Space)
-        this.tasks.forEach(task => {
-          if (task.id === this.draggingTaskId) return;
-          task.x += task.vx;
-          task.y += task.vy;
-          task.vx *= this.damping;
-          task.vy *= this.damping;
-          
-          // Infinite field: no hard boundaries as requested
-          // Tasks can live anywhere in the coordinate space
-        });
-        this.physicsLoop = requestAnimationFrame(update);
-      };
-      this.physicsLoop = requestAnimationFrame(update);
-    },
-
-    // DESKTOP INTERACTION
-    startDragTask(e, task) {
-      if (e.button !== 0) return; // Only left click
-      this.draggingTaskId = task.id;
-      this.focusedTaskId = task.id; // Also focus
-      const rect = this.$refs.field.getBoundingClientRect();
-      this.offset = {
-        x: e.clientX - rect.left - (task.x + this.pan.x + rect.width / 2),
-        y: e.clientY - rect.top - (task.y + this.pan.y + rect.height / 2)
-      };
-    },
-    startPan(e) {
-      if (this.isAddingExpanded) return;
-      this.isPanning = true;
-      this.offset = { x: e.clientX - this.pan.x, y: e.clientY - this.pan.y };
-    },
-    onMouseMove(e) {
-      const rect = this.$refs.field.getBoundingClientRect();
-      // Header Safety Constraint
-      let clientY = e.clientY;
-      const headerProtection = 160; 
-      if (clientY < headerProtection) clientY = headerProtection;
-
-      if (this.draggingTaskId) {
-        const task = this.tasks.find(t => t.id === this.draggingTaskId);
-        if (task) {
-          task.x = (e.clientX - rect.left - rect.width / 2 - this.pan.x) / this.zoom;
-          task.y = (clientY - rect.top - rect.height / 2 - this.pan.y) / this.zoom;
-          task.vx = task.vy = 0;
-        }
-      } else if (this.isPanning) {
-        this.pan.x = e.clientX - this.offset.x;
-        this.pan.y = clientY - this.offset.y;
-      }
-    },
-
-    // TOUCH INTERACTION (Mobile)
-    startDragTaskTouch(e, task) {
-      // Don't start drag immediately. Wait for movement.
-      const touch = e.touches[0];
-      this.potentialDragTaskId = task.id;
-      this.dragStart = { x: touch.clientX, y: touch.clientY };
-      this.isActuallyDragging = false;
-    },
-    startPanTouch(e) {
-      if (this.isAddingExpanded) return;
-      const touch = e.touches[0];
-      this.isPanning = true;
-      this.offset = { x: touch.clientX - this.pan.x, y: touch.clientY - this.pan.y };
-    },
-    onMouseMoveTouch(e) {
-      if (e.touches.length === 2) {
-        this.handlePinch(e);
-        return;
-      }
-      const touch = e.touches[0];
-      const rect = this.$refs.field.getBoundingClientRect();
-      
-      // Header Safety Constraint
-      let clientY = touch.clientY;
-      const headerProtection = 160;
-      // Soft resistance or hard stop? Hard stop ensures no overlap.
-      if (clientY < headerProtection) clientY = headerProtection;
-
-      // Check for drag initiation
-      if (this.potentialDragTaskId && !this.isActuallyDragging) {
-        const dx = touch.clientX - this.dragStart.x;
-        const dy = clientY - this.dragStart.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        
-        if (dist > this.dragThreshold) {
-          this.isActuallyDragging = true;
-          this.draggingTaskId = this.potentialDragTaskId;
-          this.focusedTaskId = this.potentialDragTaskId;
-          this.potentialDragTaskId = null;
-          
-          // Calculate offset relative to CURRENT touch position to avoid jump
-          const task = this.tasks.find(t => t.id === this.draggingTaskId);
-          if (task) {
-             this.offset = {
-              x: touch.clientX - rect.left - (task.x + this.pan.x + rect.width / 2),
-              y: clientY - rect.top - (task.y + this.pan.y + rect.height / 2)
-            };
-          }
-        }
-      }
-
-      if (this.draggingTaskId) {
-        const task = this.tasks.find(t => t.id === this.draggingTaskId);
-        if (task) {
-          task.x = (touch.clientX - rect.left - rect.width / 2 - this.pan.x) / this.zoom;
-          task.y = (clientY - rect.top - rect.height / 2 - this.pan.y) / this.zoom;
-          task.vx = task.vy = 0;
-        }
-      } else if (this.isPanning) {
-        this.pan.x = touch.clientX - this.offset.x;
-        this.pan.y = clientY - this.offset.y;
-      }
-    },
-
-    async stopInteraction() {
-      // If we had a potential drag but never moved enough, treat it as a tap/focus
-      if (this.potentialDragTaskId && !this.isActuallyDragging) {
-        this.focusTaskByName(this.potentialDragTaskId);
-      }
-
-      if (this.draggingTaskId) {
-        const task = this.tasks.find(t => t.id === this.draggingTaskId);
-        if (task) {
-            await updateDoc(doc(db, 'tasks', task.id), { x: task.x, y: task.y });
-        }
-        this.draggingTaskId = null;
-      }
-      this.isPanning = false;
-      this.potentialDragTaskId = null;
-      this.isActuallyDragging = false;
-    },
-
-    focusTask(task) {
-       this.focusedTaskId = task.id;
-    },
-    focusTaskByName(id) {
-       this.focusedTaskId = id;
-    },
-    clearFocus() {
-      this.focusedTaskId = null;
-    },
-
-    getTaskStyle(task) {
-      const x = (task.x * this.zoom) + this.pan.x;
-      const y = (task.y * this.zoom) + this.pan.y;
-      
-      const isDragging = this.draggingTaskId === task.id;
-      const isFocused = this.focusedTaskId === task.id;
-
-      return {
-        left: '50%',
-        top: '50%',
-        transform: `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${this.zoom * (isFocused ? 1.05 : 1)})`,
-        zIndex: isDragging || isFocused ? 100 : 10,
-        transition: isDragging ? 'none' : 'transform 0.15s cubic-bezier(0.17, 0.67, 0.83, 0.67)'
-      };
-    },
-    handleWheel(e) {
-      e.preventDefault();
-      const zoomSpeed = 0.0015;
-      const delta = -e.deltaY * zoomSpeed * this.zoom;
-      const newZoom = Math.min(Math.max(this.zoom + delta, this.minZoom), this.maxZoom);
-      this.zoom = newZoom;
-    },
-    handlePinch(e) {
-      const touch1 = e.touches[0];
-      const touch2 = e.touches[1];
-      const dist = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
-      
-      if (this.lastPinchDist > 0) {
-        const delta = (dist - this.lastPinchDist) * 0.005;
-        this.zoom = Math.min(Math.max(this.zoom + delta, this.minZoom), this.maxZoom);
-      }
-      this.lastPinchDist = dist;
+    async confirmArchive() {
+      const completedTasks = this.tasks.filter(t => t.completed);
+      await Promise.all(completedTasks.map(task => 
+        updateDoc(doc(db, 'tasks', task.id), { archived: true })
+      ));
+      this.showArchiveModal = false;
     },
 
     formatDate(date) {
       if (!date) return '';
       const d = date.toDate ? date.toDate() : new Date(date);
-      return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
-    },
-
-    backToCollection() { this.$router.push('/'); }
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
   }
 };
 </script>
 
 <style scoped>
-.tsk-container {
+.tsk-view {
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* HEADER */
+.tsk-header {
+  padding: 100px 0 30px;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.header-title h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+}
+
+.task-count {
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+}
+
+/* QUICK ADD */
+.quick-add {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+.quick-add.expanded {
+  border-color: rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.08);
+}
+
+.quick-add-main {
+  display: flex;
+  gap: 12px;
+}
+
+.task-input {
+  flex: 1;
   background: transparent;
-}
-.safe-top {
-  padding-top: calc(env(safe-area-inset-top, 20px) + 3.5rem);
-}
-@media (min-width: 768px) {
-  .safe-top {
-    padding-top: 6rem;
-  }
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 8px 0;
 }
 
-.expand-enter-active, .expand-leave-active {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 400px;
-  opacity: 1;
+.task-input::placeholder {
+  color: rgba(255,255,255,0.3);
 }
 
-.expand-enter-from, .expand-leave-to {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-}
-
-.box-letter-footer {
-  width: 20px;
-  height: 20px;
-  background: white;
-  color: black;
+.add-btn {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 900;
-  border-radius: 4px;
-  box-shadow: 0 2px 0 #cbd5e1;
+  transition: all 0.2s ease;
+}
+
+.add-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+}
+
+.add-btn:active {
+  transform: scale(0.95);
+}
+
+.add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* TASK OPTIONS */
+.task-options {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.task-description {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 12px;
+  color: white;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 60px;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.task-description:focus {
+  border-color: rgba(255,255,255,0.3);
+}
+
+.task-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.task-date,
+.task-priority {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+/* Fix dropdown option visibility */
+.task-priority option {
+  background: #1a1a2e;
+  color: white;
+  padding: 8px;
+}
+
+.task-date::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.6;
+}
+
+/* URGENCY TOGGLE */
+.urgency-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.urgency-toggle:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.urgency-toggle.active {
+  background: rgba(239,68,68,0.15);
+  border-color: rgba(239,68,68,0.4);
+  color: #ef4444;
+}
+
+.urgency-toggle.active svg {
+  color: #ef4444;
+}
+
+.file-upload {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.cancel-btn {
+  margin-left: auto;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.cancel-btn:hover {
+  color: white;
+}
+
+.image-preview {
+  position: relative;
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+.remove-preview {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: rgba(0,0,0,0.7);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* TOOLBAR */
+.toolbar {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 20px;
+}
+
+.toolbar .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-btn {
+  padding: 6px 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-color: transparent;
+  color: white;
+}
+
+.archive-btn {
+  padding: 6px 16px;
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 20px;
+  color: rgb(34,197,94);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.archive-btn:hover {
+  background: rgba(34,197,94,0.2);
+}
+
+/* TASK GRID */
+.task-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.task-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.task-card:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.task-card.completed {
+  opacity: 0.6;
+}
+
+.task-card.completed .task-title {
+  text-decoration: line-through;
+}
+
+/* URGENT TASK STYLING */
+.task-card.urgent {
+  background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, rgba(220,38,38,0.05) 100%);
+  border-color: rgba(239,68,68,0.3);
+}
+
+.task-card.urgent:hover {
+  background: linear-gradient(135deg, rgba(239,68,68,0.12) 0%, rgba(220,38,38,0.08) 100%);
+  border-color: rgba(239,68,68,0.5);
+  box-shadow: 0 8px 24px rgba(239,68,68,0.2);
+}
+
+.task-card.urgent .priority-bar {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  width: 5px;
+  box-shadow: 0 0 10px rgba(239,68,68,0.5);
+}
+
+/* PRIORITY INDICATOR */
+.priority-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: rgba(255,255,255,0.2);
+}
+
+.task-card.priority-high .priority-bar {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+}
+
+.task-card.priority-medium .priority-bar {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+}
+
+.task-card.priority-low .priority-bar {
+  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+}
+
+/* TASK HEADER */
+.task-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-top: 2px;
+}
+
+.checkbox:hover {
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.05);
+}
+
+.checkbox.checked {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border-color: transparent;
+}
+
+.checkmark {
+  width: 14px;
+  height: 14px;
+  color: white;
+}
+
+.task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title,
+.task-title-edit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+}
+
+.task-title-edit {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  padding: 6px 8px;
+  outline: none;
+}
+
+.task-desc {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.task-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.task-card:hover .task-actions {
+  opacity: 1;
+}
+
+.count-btn,
+.edit-btn,
+.delete-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.count-btn {
+  font-size: 0.75rem;
+  font-weight: 700;
+  gap: 2px;
+}
+
+.count-btn:hover {
+  background: rgba(99,102,241,0.2);
+  border-color: rgba(99,102,241,0.5);
+  color: #6366f1;
+}
+
+.edit-btn:hover {
+  background: rgba(59,130,246,0.2);
+  border-color: rgba(59,130,246,0.5);
+  color: #3b82f6;
+}
+
+.delete-btn:hover {
+  background: rgba(239,68,68,0.2);
+  border-color: rgba(239,68,68,0.5);
+  color: #ef4444;
+}
+
+/* TASK IMAGE */
+.task-image {
+  margin: 12px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.task-image img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+/* TASK FOOTER */
+.task-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.task-date-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.6);
+}
+
+.task-created {
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.3);
+}
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: rgba(255,255,255,0.2);
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 8px 0;
+}
+
+.empty-state p {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.4);
+  margin: 0;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: rgba(20,20,30,0.95);
+  border: 2px solid rgba(239,68,68,0.3);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  background: rgba(239,68,68,0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-icon svg {
+  width: 32px;
+  height: 32px;
+  color: #ef4444;
+}
+
+.modal-content h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+}
+
+.modal-content p {
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 24px 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modal-btn.secondary {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+}
+
+.modal-btn.secondary:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.modal-btn.danger {
+  background: rgba(239,68,68,0.2);
+  border: 1px solid rgba(239,68,68,0.5);
+  color: #ef4444;
+}
+
+.modal-btn.danger:hover {
+  background: rgba(239,68,68,0.3);
+}
+
+.modal-btn.success {
+  background: rgba(34,197,94,0.2);
+  border: 1px solid rgba(34,197,94,0.5);
+  color: #22c55e;
+}
+
+.modal-btn.success:hover {
+  background: rgba(34,197,94,0.3);
+}
+
+/* Archive Modal Specific Styling */
+.archive-modal {
+  border-color: rgba(34,197,94,0.3);
+}
+
+.archive-icon {
+  background: rgba(34,197,94,0.1);
+}
+
+.archive-icon svg {
+  color: #22c55e;
+}
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(99,102,241,0.6);
+}
+
+.fab:active {
+  transform: scale(0.95);
 }
 
 @media (min-width: 768px) {
-  .box-letter-footer {
-    width: 24px;
-    height: 24px;
-    font-size: 0.75rem;
-    border-radius: 5px;
+  .fab {
+    bottom: 30px;
   }
 }
 
-.task-box {
-  transition: transform 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67), box-shadow 0.2s ease;
-  width: auto;
-  backdrop-filter: blur(10px);
-  position: relative;
-  transform-style: preserve-3d;
-  perspective: 1000px;
+/* ANIMATIONS */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.3s ease;
 }
 
-.task-box.focused {
-  transform: scale(1.1);
-  box-shadow: 
-    0 30px 60px -12px rgba(0, 0, 0, 0.6),
-    0 0 30px rgba(6, 182, 212, 0.15); /* Cyan glow */
-  z-index: 50;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
 }
 
-.tsk-card-glass {
-  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
-  box-shadow: 
-    0 4px 24px -1px rgba(0, 0, 0, 0.4),
-    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+.slide-down-enter-to,
+.slide-down-leave-from {
+  opacity: 1;
+  max-height: 500px;
 }
 
-.task-box:hover, .task-box.focused {
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 
-    0 20px 40px -10px rgba(0, 0, 0, 0.6),
-    0 0 20px rgba(255, 255, 255, 0.1);
+.task-list-move,
+.task-list-enter-active,
+.task-list-leave-active {
+  transition: all 0.3s ease;
 }
 
-@keyframes border-flow {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+.task-list-enter-from {
+  opacity: 0;
+  transform: translateY(-20px);
 }
 
-.group:hover .animate-border-flow {
-  animation: border-flow 1.5s infinite linear;
+.task-list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
 }
 
-* {
-  user-select: none;
-  -webkit-user-drag: none;
+.task-list-leave-active {
+  position: absolute;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  opacity: 0.5;
-  cursor: pointer;
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.3s ease;
 }
 
-/* Modal Transitions */
-.modal-fade-enter-active, .modal-fade-leave-active {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modal-fade-enter-from, .modal-fade-leave-to {
+.modal-enter-from,
+.modal-leave-to {
   opacity: 0;
 }
 
-.modal-fade-enter-active > div,
-.modal-fade-leave-active > div {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modal-fade-enter-from > div {
+.modal-enter-from .modal-content,
+.modal-leave-to .modal-content {
   transform: scale(0.9);
-  opacity: 0;
-}
-
-.modal-fade-leave-to > div {
-  transform: scale(0.95);
-  opacity: 0;
 }
 </style>
